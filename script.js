@@ -256,18 +256,41 @@ function handleImageError() {
     `;
 }
 
-// Функция клика
-function handleClick(event) {
+// ФУНКЦИЯ КЛИКА (ОСНОВНАЯ ЛОГИКА) - ЗАМЕНА handleClick
+function handleMainTap(event) {
+    // 1. ПРЕДОТВРАЩЕНИЕ ДВОЙНОГО КЛИКА / ЗАТОРМОЖЕННОГО КЛИКА НА МОБИЛЬНОМ
+    // Это критически важно: запускает логику сразу по touchstart и предотвращает конфликт с click
+    if (event.type === 'touchstart' || event.type === 'mousedown') {
+        event.preventDefault(); 
+    }
+
+    // Блокируем множественные клики, если цель не click-area
+    if (event.target !== clickArea && event.target.closest('#click-area') !== clickArea) {
+        return;
+    }
+    
+    // 2. ОСНОВНАЯ ЛОГИКА ИГРЫ
     score += clickValue;
     totalClicks++;
     updateDisplay();
     
-    if (settings.clickEffects) {
-        createClickEffect(event.clientX, event.clientY, `+${clickValue}`);
+    // Получаем координаты для эффекта клика (с поддержкой touch)
+    let clientX, clientY;
+    if (event.touches && event.touches.length > 0) {
+        clientX = event.changedTouches[0].clientX;
+        clientY = event.changedTouches[0].clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+
+    if (settings.clickEffects && clientX && clientY) {
+        createClickEffect(clientX, clientY, `+${clickValue}`);
     }
     
+    // Анимация нажатия
     buba.style.transform = 'scale(0.95)';
-    setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
+    // Анимация отпускания будет выполнена обработчиками touchend/mouseup
     
     checkAchievements();
     upgrades.forEach(upgrade => upgrade.updateDisplay());
@@ -478,7 +501,7 @@ function resetGame() {
 // Пассивный доход
 function passiveIncomeTick() {
     if (passiveIncome > 0) {
-        score += passiveIncome;
+        score += passiveIncome / 10; // Тикаем 10 раз в секунду
         updateDisplay();
     }
 }
@@ -530,17 +553,27 @@ function initGame() {
         showSection('settings-section');
     });
 
-    // Обработчик клика по Бубе
-    clickArea.addEventListener('click', handleClick);
+    // --- ИСПРАВЛЕННЫЕ ОБРАБОТЧИКИ КЛИКОВ/ТАПОВ ---
     
-    // Обработчики для анимации клика
-    clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
-    clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
+    // 1. Мобильный (touchstart/touchend): touchstart запускает логику, touchend завершает анимацию
+    clickArea.addEventListener('touchstart', handleMainTap, { passive: false });
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
-
-    // Обработчики кнопок сохранения/сброса (КНОПКИ SAVE/LOAD УДАЛЕНЫ)
     
+    // 2. Десктоп (mousedown/mouseup): mousedown запускает логику, mouseup завершает анимацию
+    clickArea.addEventListener('mousedown', (e) => {
+        // Проверяем, что это не touch event, чтобы избежать конфликта на гибридных устройствах
+        if (e.pointerType !== 'touch') {
+            handleMainTap(e);
+        }
+    });
+    clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
+    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); // Сброс анимации, если мышь ушла
+    
+    // СТАРЫЙ ОБРАБОТЧИК clickArea.addEventListener('click', handleClick); УДАЛЕН.
+    // СТАРЫЕ ОБРАБОТЧИКИ ДЛЯ АНИМАЦИИ ТОЖЕ УДАЛЕНЫ/ЗАМЕНЕНЫ.
+    // ----------------------------------------------------------------------
+
+    // Обработчики кнопок сохранения/сброса 
     document.getElementById('reset-button').addEventListener('click', function() {
         resetGame();
     });
@@ -585,7 +618,7 @@ function initGame() {
     
     // Запускаем таймеры
     setInterval(saveProgress, 30000); 
-    setInterval(passiveIncomeTick, 1000); 
+    setInterval(passiveIncomeTick, 100); // 10 раз в секунду
     setInterval(gameTimerTick, 1000); 
 }
 
