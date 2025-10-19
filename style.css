@@ -121,8 +121,8 @@ h1 {
 }
 
 .buba-image {
-    width: 80%;
-    height: 80%;
+    width: 85%;
+    height: 85%;
     object-fit: contain;
     border-radius: 50%;
     transition: transform 0.2s ease;
@@ -255,10 +255,10 @@ h1 {
     transform: translateY(-3px);
 }
 
-/* ДОБАВЛЕНО: СТИЛЬ ДЛЯ ПОКУПАЕМОГО УЛУЧШЕНИЯ (чтобы светилось) */
+/* СТИЛЬ ДЛЯ ПОКУПАЕМОГО УЛУЧШЕНИЯ */
 .upgrade.can-buy {
-    border-color: #4CAF50; /* Зеленый цвет рамки */
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); /* Эффект свечения */
+    border-color: #4CAF50; 
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); 
     background: rgba(76, 175, 80, 0.15);
 }
 .upgrade.can-buy:hover {
@@ -270,7 +270,7 @@ h1 {
     opacity: 0.6;
     cursor: not-allowed;
     border-color: transparent;
-    box-shadow: none; /* Убираем свечение, если нельзя купить */
+    box-shadow: none; 
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -308,7 +308,7 @@ h1 {
     font-weight: bold;
 }
 
-/* --- Раздел достижений (без изменений) --- */
+/* --- Раздел достижений --- */
 .achievement-list {
     display: flex;
     flex-direction: column;
@@ -358,7 +358,7 @@ h1 {
     margin-left: 10px;
 }
 
-/* --- Раздел настроек (изменения только в save-section) --- */
+/* --- Раздел настроек --- */
 .settings {
     display: grid;
     grid-template-columns: 1fr;
@@ -390,8 +390,6 @@ h1 {
     transition: background-color 0.2s ease, transform 0.1s ease;
     color: white;
 }
-
-/* УДАЛЕНЫ СТИЛИ ДЛЯ #save-button И #load-button */
 
 #reset-button {
     background-color: #f44336; /* Красный */
@@ -509,184 +507,125 @@ h1 {
     opacity: 0.9;
 }
 
-/* --- ДОБАВЛЕНО: Стили для МОДАЛЬНОГО ОКНА ВЫБОРА УСТРОЙСТВА --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.95);
-    display: none; 
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.modal-overlay.active {
-    display: flex;
-}
-
-.modal-content {
-    background: #1e3c72; 
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    max-width: 90%;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-
-/* --- ДОБАВЛЕНО: Стили для МОБИЛЬНОГО РЕЖИМА (Вертикальный интерфейс) --- */
-.mobile-mode body {
-    padding: 0; 
-}
-
-.mobile-mode .container {
-    max-width: 100%;
-    width: 100%;
-    height: 100vh; 
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    overflow-y: hidden; 
-}
-
-.mobile-mode header {
-    margin-bottom: 10px;
-    padding: 10px;
-    flex-shrink: 0; 
-}
-
-.mobile-mode h1 {
-    font-size: 2rem;
-}
-
-.mobile-mode .stats {
-    flex-direction: column; 
-    gap: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-}
-
-.mobile-mode .stat-item {
-    width: 100%;
-    padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.mobile-mode .stat-value {
-    font-size: 1.5rem;
-}
-
-.mobile-mode .click-area {
-    flex-grow: 1; 
-    padding: 5px;
-    margin-bottom: 5px;
-    min-height: 250px; 
-}
-
-.mobile-mode .buba-container {
-    width: 250px;
-    height: 250px;
+/* --- Стили для адаптации к телефону (мобильный режим) --- */
+/* Стиль для предотвращения конфликта анимации и клика/тапа */
+.buba-container {
     touch-action: manipulation;
 }
 
-.mobile-mode .instructions {
-    margin: 10px 0;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-}
-
-.mobile-mode #tilt-instruction {
-    display: none !important; 
-}
-
-.mobile-mode .navigation-menu {
-    position: relative; 
-    width: 100%;
-    max-width: none;
-    margin: 0 0 10px 0; 
-    border-radius: 10px;
-    padding: 10px 5px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    z-index: 50;
-    flex-shrink: 0;
-    flex-direction: row; 
-}
-
-.mobile-mode .menu-button {
-    font-size: 0.8rem;
-    padding: 10px 5px;
-}
-
-.mobile-mode .section {
-    flex-grow: 1;
-    overflow-y: auto; 
-    padding: 10px;
-    margin-top: 0;
-    margin-bottom: 10px;
-    -webkit-overflow-scrolling: touch;
-    flex-shrink: 1; 
-}
-
-.mobile-mode .section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-}
-
-.mobile-mode .upgrades-section .upgrades {
-    grid-template-columns: 1fr; /* Улучшения в один столбец */
-    gap: 10px;
-}
-
-.mobile-mode .upgrade {
-    padding: 10px;
-    text-align: left;
-    display: grid;
-    grid-template-columns: 40px 1fr auto; /* Иконка, Имя, Стоимость/Уровень */
-    gap: 10px;
-    align-items: center;
-}
-
-.mobile-mode .upgrade-icon {
-    grid-column: 1 / 2;
-    font-size: 1.5rem;
-    margin-bottom: 0;
-}
-
-.mobile-mode .upgrade-name {
-    grid-column: 2 / 3;
-    font-size: 1rem;
-    margin-bottom: 0;
-}
-
-.mobile-mode .upgrade-description {
-    display: none; /* Скрываем на мобильном для компактности */
-}
-
-.mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
-    grid-column: 3 / 4;
-    font-size: 0.9rem;
-    text-align: right;
-    white-space: nowrap;
-}
-
-.mobile-mode .achievement {
-    padding: 8px 10px;
-    font-size: 0.9rem;
-}
-
-.mobile-mode .save-section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 0;
+        min-height: 98vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    header {
+        margin-bottom: 10px;
+        padding: 10px;
+        flex-shrink: 0; 
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .stats {
+        flex-direction: column; 
+        gap: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+    
+    .stat-item {
+        width: 100%;
+        padding: 5px 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .click-area {
+        flex-grow: 1; 
+        padding: 5px;
+        margin-bottom: 5px;
+        min-height: 250px; 
+    }
+    
+    .navigation-menu {
+        margin: 0 0 10px 0; 
+        padding: 10px 5px;
+        flex-shrink: 0;
+    }
+    
+    .menu-button {
+        font-size: 0.8rem;
+        padding: 10px 5px;
+    }
+    
+    .section {
+        flex-grow: 1;
+        overflow-y: auto; 
+        padding: 10px;
+        margin-top: 0;
+        margin-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+        flex-shrink: 1; 
+    }
+    
+    .section h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .upgrades-section .upgrades {
+        grid-template-columns: 1fr; /* Улучшения в один столбец */
+        gap: 10px;
+    }
+    
+    .upgrade {
+        padding: 10px;
+        text-align: left;
+        display: grid;
+        grid-template-columns: 40px 1fr auto; 
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .upgrade-icon {
+        grid-column: 1 / 2;
+        font-size: 1.5rem;
+        margin-bottom: 0;
+    }
+    
+    .upgrade-name {
+        grid-column: 2 / 3;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .upgrade-description {
+        display: none; /* Скрываем на мобильном для компактности */
+    }
+    
+    .upgrade-level, .upgrade-cost {
+        grid-column: 3 / 4;
+        font-size: 0.9rem;
+        text-align: right;
+        white-space: nowrap;
+    }
+    
+    .achievement {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
 }
