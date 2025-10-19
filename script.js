@@ -62,11 +62,6 @@ const selectMobileButton = document.getElementById('select-mobile');
 const selectDesktopButton = document.getElementById('select-desktop');
 const deviceTypeDisplay = document.getElementById('device-type-display');
 
-// --- ДОБАВЛЕНЫ: Переменные для отслеживания главного прослушивателя события клика ---
-let currentClickListener = null;
-let currentListenerType = null;
-// ---------------------------------------------------------------------------------
-
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
 function toggleMusic(play) {
     if (play) {
@@ -198,28 +193,6 @@ function initTiltEffect() {
     }
 }
 
-// --- НОВАЯ ФУНКЦИЯ: Установка прослушивателей кликов/тапов ---
-function setupClickListeners() {
-    // 1. Очистка старого прослушивателя
-    if (currentClickListener && currentListenerType) {
-        clickArea.removeEventListener(currentListenerType, currentClickListener);
-    }
-    
-    // 2. Определение нового прослушивателя и типа
-    if (settings.deviceType === 'mobile') {
-        // На мобильном используем touchend для моментального действия (без задержки клика)
-        currentListenerType = 'touchend';
-        currentClickListener = handleClick; 
-    } else {
-        // На компьютере используем стандартный click
-        currentListenerType = 'click';
-        currentClickListener = handleClick;
-    }
-    
-    // 3. Добавление нового прослушивателя
-    clickArea.addEventListener(currentListenerType, currentClickListener);
-}
-
 // --- ФУНКЦИИ ДЛЯ ВЫБОРА УСТРОЙСТВА ---
 function applyDeviceSettings(deviceType) {
     settings.deviceType = deviceType;
@@ -233,7 +206,6 @@ function applyDeviceSettings(deviceType) {
     }
     
     updateToggleDisplays();
-    setupClickListeners(); // ДОБАВЛЕНО: Устанавливаем корректный прослушиватель клика
     saveProgress();
 }
 
@@ -286,32 +258,16 @@ function handleImageError() {
 
 // Функция клика
 function handleClick(event) {
-    // ВАЖНО: Проверяем, что это не сработавший tap, если у нас уже был клик.
-    // На мобильных устройствах, если мы слушаем 'touchend', этот код выполнится один раз.
-    if (event.type === 'touchend' && settings.deviceType !== 'mobile') {
-        return; // Игнорируем touchend, если мы не в мобильном режиме (на всякий случай)
-    }
-    
     score += clickValue;
     totalClicks++;
     updateDisplay();
     
-    // Получаем координаты для эффекта клика
-    let clientX, clientY;
-    if (event.touches && event.touches.length > 0) {
-        clientX = event.changedTouches[0].clientX;
-        clientY = event.changedTouches[0].clientY;
-    } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-    }
-
-    if (settings.clickEffects && clientX && clientY) {
-        createClickEffect(clientX, clientY, `+${clickValue}`);
+    if (settings.clickEffects) {
+        createClickEffect(event.clientX, event.clientY, `+${clickValue}`);
     }
     
-    // Анимация buba.style.transform = 'scale(0.95)' уже происходит в touchstart/mousedown
-    // Здесь нужен только небольшой сброс, т.к. touchend/mouseup уже установлены
+    buba.style.transform = 'scale(0.95)';
+    setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
     
     checkAchievements();
     upgrades.forEach(upgrade => upgrade.updateDisplay());
@@ -472,8 +428,11 @@ function loadProgress() {
                 applyDeviceSettings(settings.deviceType);
             }
             
+            // showNotification('Прогресс загружен', 'Ваш прогресс успешно восстановлен!'); // Убрано, т.к. автоматическая загрузка должна быть бесшумной
+            
         } catch (error) {
             console.error('Ошибка загрузки:', error);
+            // showNotification('Ошибка', 'Не удалось загрузить сохранение'); // Убрано
             recalculateAllStats();
             updateToggleDisplays();
         }
@@ -519,7 +478,7 @@ function resetGame() {
 // Пассивный доход
 function passiveIncomeTick() {
     if (passiveIncome > 0) {
-        score += passiveIncome / 10; // Тикаем 10 раз в секунду для более плавной анимации
+        score += passiveIncome;
         updateDisplay();
     }
 }
@@ -571,27 +530,15 @@ function initGame() {
         showSection('settings-section');
     });
 
-    // --- ОБРАБОТЧИКИ КЛИКОВ/ТАПОВ (ИЗМЕНЕНЫ) ---
-    // Назначение главного прослушивателя теперь происходит в setupClickListeners()
+    // Обработчик клика по Бубе
+    clickArea.addEventListener('click', handleClick);
     
-    // Обработчики для анимации (остаются, но touchstart модифицирован)
+    // Обработчики для анимации клика
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    
-    // МОДИФИЦИРОВАНО: Прослушиватель touchstart для условного e.preventDefault()
-    const touchStartHandler = function(e) {
-        // Предотвращаем стандартное действие только на мобильном, чтобы избежать масштабирования/прокрутки
-        if (settings.deviceType === 'mobile') {
-            e.preventDefault(); 
-        }
-        buba.style.transform = 'scale(0.95)';
-    };
-    clickArea.addEventListener('touchstart', touchStartHandler);
-
-    // touchend для анимации (действие будет назначено в setupClickListeners)
+    clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
-    // ----------------------------------------------------------------------
-    
+
     // Обработчики кнопок сохранения/сброса (КНОПКИ SAVE/LOAD УДАЛЕНЫ)
     
     document.getElementById('reset-button').addEventListener('click', function() {
@@ -631,16 +578,14 @@ function initGame() {
     if (!settings.deviceType) {
         deviceSelectModal.classList.add('active'); // Показываем выбор устройства
     } else {
-        // Применяем настройки, что также вызовет setupClickListeners() для установки клика
-        applyDeviceSettings(settings.deviceType); 
+        applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
     }
     
     showSection('upgrades-section');
     
     // Запускаем таймеры
     setInterval(saveProgress, 30000); 
-    // Тикаем 10 раз в секунду для более плавного пассивного дохода
-    setInterval(passiveIncomeTick, 100); 
+    setInterval(passiveIncomeTick, 1000); 
     setInterval(gameTimerTick, 1000); 
 }
 

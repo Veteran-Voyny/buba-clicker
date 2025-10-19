@@ -121,9 +121,8 @@ h1 {
 }
 
 .buba-image {
-    /* ИСПРАВЛЕНИЕ: Увеличен размер до 85% для лучшей видимости */
-    width: 85%;
-    height: 85%;
+    width: 80%;
+    height: 80%;
     object-fit: contain;
     border-radius: 50%;
     transition: transform 0.2s ease;
