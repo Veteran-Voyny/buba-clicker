@@ -32,7 +32,7 @@ header {
     border-radius: 15px;
     border: 2px solid gold;
     transition: transform 0.2s ease;
-    transform-style: preserve-3d; /* Для 3D-эффекта */
+    transform-style: preserve-3d;
 }
 
 h1 {
@@ -77,6 +77,7 @@ h1 {
     transition: transform 0.1s ease-out;
     position: relative;
     transform-style: preserve-3d;
+    z-index: 10; /* Убеждаемся, что Буба выше других элементов */
 }
 
 .buba {
@@ -94,15 +95,6 @@ h1 {
     overflow: hidden;
 }
 
-.buba-content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
 .buba-image {
     width: 90%;
     height: 90%;
@@ -112,9 +104,9 @@ h1 {
     transition: transform 0.2s ease;
 }
 
-/* Эффект клика (летающие цифры) */
+/* Эффект клика */
 .click-effect {
-    position: fixed; 
+    position: fixed;
     font-size: 2rem;
     font-weight: bold;
     color: #ffcc00;
@@ -165,49 +157,15 @@ h1 {
     border-radius: 10px;
     margin-top: 20px;
     text-align: left;
-    display: none; /* Скрываем по умолчанию */
+    display: none; 
 }
 
-/* Отображаем активную вкладку (для десктопа) */
+/* Десктоп */
 .section.active {
     display: block; 
 }
 
-/* Улучшения */
-.upgrades {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.upgrade {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 15px;
-    border-radius: 10px;
-    transition: background 0.2s, border-color 0.2s;
-    cursor: pointer;
-    border: 2px solid transparent;
-    text-align: center;
-}
-
-.upgrade:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.upgrade.can-buy {
-    border-color: #00ff00; 
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.upgrade.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    border-color: transparent;
-}
-
 /* Настройки, Уведомления и Модальное окно — стили без изменений */
-
-/* МОДАЛЬНОЕ ОКНО ВЫБОРА УСТРОЙСТВА */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -240,75 +198,42 @@ h1 {
     margin-top: 20px;
 }
 
-/* --- КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНОГО РЕЖИМА (Вертикальный интерфейс) --- */
+/* --- КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНОГО РЕЖИМА (Телефон) --- */
 .mobile-mode body {
     padding: 0; 
+    height: 100vh; /* Убеждаемся, что body занимает всю высоту экрана */
 }
 
 .mobile-mode .container {
     max-width: 100%;
     width: 100%;
-    height: 100vh; /* Занимает всю высоту видимой области */
+    height: 100%; /* Занимает всю высоту body */
     display: flex;
-    flex-direction: column; /* Элементы идут сверху вниз */
-    padding: 10px;
-    overflow: hidden; /* Важно: скрываем общий скролл контейнера */
-}
-
-.mobile-mode header {
-    margin-bottom: 10px;
-    padding: 10px;
-    flex-shrink: 0; /* Фиксированная высота */
-}
-
-.mobile-mode h1 {
-    font-size: 2rem;
-}
-
-.mobile-mode .stats {
     flex-direction: column; 
-    gap: 5px;
     padding: 10px;
+    overflow: hidden; 
+}
+
+.mobile-mode header,
+.mobile-mode .stats,
+.mobile-mode .click-area,
+.mobile-mode .navigation-menu {
+    flex-shrink: 0; /* Эти элементы не должны сжиматься */
     margin-bottom: 10px;
-    flex-shrink: 0; /* Фиксированная высота */
-}
-
-.mobile-mode .stat-item {
-    width: 100%;
-    padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.mobile-mode .stat-value {
-    font-size: 1.5rem;
 }
 
 .mobile-mode .click-area {
-    padding: 5px;
+    min-height: 200px; 
     margin-bottom: 5px;
-    min-height: 250px; 
-    flex-shrink: 0; /* Фиксированная высота */
 }
 
 .mobile-mode .buba-container {
-    width: 200px; /* Сделаем чуть меньше для компактности */
-    height: 200px;
-    margin: 0 auto;
-    flex-shrink: 0;
-    touch-action: manipulation;
+    width: 180px;
+    height: 180px;
 }
 
 .mobile-mode .navigation-menu {
-    position: relative; 
-    width: 100%;
     margin: 0 0 10px 0; 
-    flex-shrink: 0; /* Фиксированная высота */
-}
-
-.mobile-mode .menu-button {
-    font-size: 0.9rem;
-    padding: 10px 5px;
 }
 
 /* НОВЫЙ СТИЛЬ: Обертка для секций */
@@ -316,7 +241,7 @@ h1 {
     /* КРИТИЧЕСКИ ВАЖНО: Занять все оставшееся место */
     flex: 1 1 0%; 
     width: 100%;
-    overflow: hidden; /* Скрываем скролл обертки */
+    overflow: hidden; 
     position: relative; /* База для абсолютного позиционирования секций */
 }
 
@@ -334,20 +259,14 @@ h1 {
     /* КРИТИЧЕСКИ ВАЖНО: прокручиваем содержимое самой секции */
     overflow-y: auto; 
     border-radius: 10px;
-    /* Скрываем неактивные секции */
-    display: none; 
+    z-index: 1; /* Убеждаемся, что активная секция выше неактивных */
 }
 
-.mobile-mode .section.active {
-    display: block;
+.mobile-mode .section:not(.active) {
+    display: none;
 }
 
-.mobile-mode .section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-}
-
-/* Улучшения (оптимизация для мобильных) */
+/* Оптимизация содержимого для мобильных */
 .mobile-mode .upgrades-section .upgrades {
     grid-template-columns: 1fr; 
     gap: 10px;
@@ -362,32 +281,8 @@ h1 {
     align-items: center;
 }
 
-.mobile-mode .upgrade-icon {
-    grid-column: 1 / 2;
-    font-size: 1.5rem;
-    margin-bottom: 0;
-}
-
-.mobile-mode .upgrade-name {
-    grid-column: 2 / 3;
-    font-size: 1rem;
-    margin-bottom: 0;
-}
-
 .mobile-mode .upgrade-description {
     display: none; 
-}
-
-.mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
-    grid-column: 3 / 4;
-    font-size: 0.9rem;
-    text-align: right;
-    white-space: nowrap;
-}
-
-.mobile-mode .achievement {
-    padding: 8px 10px;
-    font-size: 0.9rem;
 }
 
 .mobile-mode .save-section {
