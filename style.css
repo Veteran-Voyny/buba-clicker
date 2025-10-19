@@ -121,9 +121,9 @@ h1 {
 }
 
 .buba-image {
-    /* ИСПРАВЛЕНИЕ: Уменьшаем размер до 70% для большего отступа */
-    width: 70%;
-    height: 70%;
+    /* ИСПРАВЛЕНИЕ: Увеличен размер до 85% для лучшей видимости */
+    width: 85%;
+    height: 85%;
     object-fit: contain;
     border-radius: 50%;
     transition: transform 0.2s ease;
@@ -359,7 +359,7 @@ h1 {
     margin-left: 10px;
 }
 
-/* --- Раздел настроек (без изменений) --- */
+/* --- Раздел настроек (изменения только в save-section) --- */
 .settings {
     display: grid;
     grid-template-columns: 1fr;
@@ -392,13 +392,7 @@ h1 {
     color: white;
 }
 
-#save-button {
-    background-color: #4CAF50; /* Зеленый */
-}
-
-#load-button {
-    background-color: #2196F3; /* Синий */
-}
+/* УДАЛЕНЫ СТИЛИ ДЛЯ #save-button И #load-button */
 
 #reset-button {
     background-color: #f44336; /* Красный */
