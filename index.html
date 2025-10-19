@@ -64,127 +64,124 @@
             <button id="menu-settings" class="menu-button">⚙️ Настройки</button>
         </div>
 
-        <div class="section upgrades-section active" id="upgrades-section">
-            <h2>🛠️ Улучшения</h2>
-            <div class="upgrades">
-                <div class="upgrade" id="upgrade-1">
-                    <div class="upgrade-icon">👆</div>
-                    <div class="upgrade-name">Усиленный палец</div>
-                    <div class="upgrade-description">Увеличивает очки за клик на 1</div>
-                    <div class="upgrade-cost">Стоимость: <span id="cost-1">10</span></div>
-                    <div class="upgrade-level">Уровень: <span id="level-1">0</span></div>
-                </div>
-                
-                <div class="upgrade" id="upgrade-2">
-                    <div class="upgrade-icon">⚡</div>
-                    <div class="upgrade-name">Автокликер</div>
-                    <div class="upgrade-description">Добавляет 1 очко в секунду</div>
-                    <div class="upgrade-cost">Стоимость: <span id="cost-2">50</span></div>
-                    <div class="upgrade-level">Уровень: <span id="level-2">0</span></div>
-                </div>
-                
-                <div class="upgrade" id="upgrade-3">
-                    <div class="upgrade-icon">💎</div>
-                    <div class="upgrade-name">Золотой палец</div>
-                    <div class="upgrade-description">Увеличивает очки за клик на 5</div>
-                    <div class="upgrade-cost">Стоимость: <span id="cost-3">200</span></div>
-                    <div class="upgrade-level">Уровень: <span id="level-3">0</span></div>
-                </div>
-                
-                <div class="upgrade" id="upgrade-4">
-                    <div class="upgrade-icon">🏭</div>
-                    <div class="upgrade-name">Фабрика кликов</div>
-                    <div class="upgrade-description">Добавляет 10 очков в секунду</div>
-                    <div class="upgrade-cost">Стоимость: <span id="cost-4">1000</span></div>
-                    <div class="upgrade-level">Уровень: <span id="level-4">0</span></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="section achievements-section" id="achievements-section">
-            <h2>🏆 Достижения</h2>
-            <div class="achievement-list">
-                <div class="achievement" id="achievement-1">
-                    <div class="achievement-icon">🥇</div>
-                    <div class="achievement-name">Первые шаги</div>
-                    <div class="achievement-progress">10 кликов</div>
-                    <div class="achievement-reward">Награда: +20 очков</div>
-                </div>
-                <div class="achievement" id="achievement-2">
-                    <div class="achievement-icon">🥈</div>
-                    <div class="achievement-name">Набирая обороты</div>
-                    <div class="achievement-progress">50 кликов</div>
-                    <div class="achievement-reward">Награда: +100 очков</div>
-                </div>
-                <div class="achievement" id="achievement-3">
-                    <div class="achievement-icon">🥉</div>
-                    <div class="achievement-name">Завсегдатай кликов</div>
-                    <div class="achievement-progress">100 кликов</div>
-                    <div class="achievement-reward">Награда: +200 очков</div>
-                </div>
-                <div class="achievement" id="achievement-4">
-                    <div class="achievement-icon">🏆</div>
-                    <div class="achievement-name">Мастер Бубы</div>
-                    <div class="achievement-progress">500 кликов</div>
-                    <div class="achievement-reward">Награда: +1000 очков</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section settings-section" id="settings-section">
-            <h2>⚙️ Настройки</h2>
-            <div class="settings">
-                <div class="setting-group">
-                    <h3>Общие настройки</h3>
-                    <div class="game-info" style="text-align: left;">
-                        <p>Тип устройства: <span id="device-type-display">Не определен</span></p> 
-                        <button class="menu-button" style="background-color: #007bff; border-color: #0056b3; margin-top: 10px;" onclick="showDeviceSelectionModal()">🔄 Сменить устройство</button>
+        <div class="sections-wrapper">
+            <div class="section upgrades-section active" id="upgrades-section">
+                <h2>🛠️ Улучшения</h2>
+                <div class="upgrades">
+                    <div class="upgrade" id="upgrade-1">
+                        <div class="upgrade-icon">👆</div>
+                        <div class="upgrade-name">Усиленный палец</div>
+                        <div class="upgrade-description">Увеличивает очки за клик на 1</div>
+                        <div class="upgrade-cost">Стоимость: <span id="cost-1">10</span></div>
+                        <div class="upgrade-level">Уровень: <span id="level-1">0</span></div>
                     </div>
-                </div>
-                
-                <div class="setting-group">
-                    <h3>Управление сохранениями</h3>
-                    <div class="save-section">
-                        <button id="reset-button" class="reset">🔄 Сбросить игру</button>
+                    
+                    <div class="upgrade" id="upgrade-2">
+                        <div class="upgrade-icon">⚡</div>
+                        <div class="upgrade-name">Автокликер</div>
+                        <div class="upgrade-description">Добавляет 1 очко в секунду</div>
+                        <div class="upgrade-cost">Стоимость: <span id="cost-2">50</span></div>
+                        <div class="upgrade-level">Уровень: <span id="level-2">0</span></div>
                     </div>
-                </div>
-                
-                <div class="setting-group">
-                    <h3>Эффекты</h3>
-                    <div class="toggle-settings">
-                        <label class="toggle">
-                            <input type="checkbox" id="toggle-3d" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-text">3D эффект наклона</span>
-                        </label>
-                        <label class="toggle">
-                            <input type="checkbox" id="toggle-effects" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-text">Эффекты кликов (цифры)</span>
-                        </label>
-                        <label class="toggle">
-                            <input type="checkbox" id="toggle-sounds" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-text">Звуковые эффекты/Музыка</span>
-                        </label>
+                    
+                    <div class="upgrade" id="upgrade-3">
+                        <div class="upgrade-icon">💎</div>
+                        <div class="upgrade-name">Золотой палец</div>
+                        <div class="upgrade-description">Увеличивает очки за клик на 5</div>
+                        <div class="upgrade-cost">Стоимость: <span id="cost-3">200</span></div>
+                        <div class="upgrade-level">Уровень: <span id="level-3">0</span></div>
                     </div>
-                </div>
-                
-                <div class="setting-group">
-                    <h3>Информация об игре</h3>
-                    <div class="game-info">
-                        <p>Всего кликов: <span id="total-clicks-display">0</span></p>
-                        <p>Общее время игры: <span id="play-time">0</span> сек</p>
-                        <p>Версия: 1.0.5</p>
+                    
+                    <div class="upgrade" id="upgrade-4">
+                        <div class="upgrade-icon">🏭</div>
+                        <div class="upgrade-name">Фабрика кликов</div>
+                        <div class="upgrade-description">Добавляет 10 очков в секунду</div>
+                        <div class="upgrade-cost">Стоимость: <span id="cost-4">1000</span></div>
+                        <div class="upgrade-level">Уровень: <span id="level-4">0</span></div>
                     </div>
                 </div>
             </div>
+            
+            <div class="section achievements-section" id="achievements-section">
+                <h2>🏆 Достижения</h2>
+                <div class="achievement-list">
+                    <div class="achievement" id="achievement-1">
+                        <div class="achievement-icon">🥇</div>
+                        <div class="achievement-name">Первые шаги</div>
+                        <div class="achievement-progress">10 кликов</div>
+                        <div class="achievement-reward">Награда: +20 очков</div>
+                    </div>
+                    <div class="achievement" id="achievement-2">
+                        <div class="achievement-icon">🥈</div>
+                        <div class="achievement-name">Набирая обороты</div>
+                        <div class="achievement-progress">50 кликов</div>
+                        <div class="achievement-reward">Награда: +100 очков</div>
+                    </div>
+                    <div class="achievement" id="achievement-3">
+                        <div class="achievement-icon">🥉</div>
+                        <div class="achievement-name">Завсегдатай кликов</div>
+                        <div class="achievement-progress">100 кликов</div>
+                        <div class="achievement-reward">Награда: +200 очков</div>
+                    </div>
+                    <div class="achievement" id="achievement-4">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-name">Мастер Бубы</div>
+                        <div class="achievement-progress">500 кликов</div>
+                        <div class="achievement-reward">Награда: +1000 очков</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section settings-section" id="settings-section">
+                <h2>⚙️ Настройки</h2>
+                <div class="settings">
+                    <div class="setting-group">
+                        <h3>Общие настройки</h3>
+                        <div class="game-info" style="text-align: left;">
+                            <p>Тип устройства: <span id="device-type-display">Не определен</span></p> 
+                            <button class="menu-button" style="background-color: #007bff; border-color: #0056b3; margin-top: 10px;" onclick="showDeviceSelectionModal()">🔄 Сменить устройство</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h3>Управление сохранениями</h3>
+                        <div class="save-section">
+                            <button id="save-button">💾 Сохранить прогресс</button>
+                            <button id="load-button">📂 Загрузить прогресс</button>
+                            <button id="reset-button" class="reset">🔄 Сбросить игру</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h3>Эффекты</h3>
+                        <div class="toggle-settings">
+                            <label class="toggle">
+                                <input type="checkbox" id="toggle-3d" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">3D эффект наклона</span>
+                            </label>
+                            <label class="toggle">
+                                <input type="checkbox" id="toggle-effects" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Эффекты кликов (цифры)</span>
+                            </label>
+                            <label class="toggle">
+                                <input type="checkbox" id="toggle-sounds" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Звуковые эффекты/Музыка</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h3>Информация об игре</h3>
+                        <div class="game-info">
+                            <p>Всего кликов: <span id="total-clicks-display">0</span></p>
+                            <p>Общее время игры: <span id="play-time">0</span> сек</p>
+                            <p>Версия: 1.0.5</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <audio id="game-music" src="music.mp3" loop></audio>
-    <div class="notification" id="notification-area"></div> 
-
-    <script src="script.js"></script>
-</body>
-</html>
+        ```
