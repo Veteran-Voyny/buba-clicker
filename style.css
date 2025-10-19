@@ -15,7 +15,7 @@ body {
     align-items: center;
     padding: 20px;
     overflow-x: hidden;
-    perspective: 1000px; /* Для 3D-эффекта */
+    perspective: 1000px; 
 }
 
 .container {
@@ -77,7 +77,7 @@ h1 {
     transition: transform 0.1s ease-out;
     position: relative;
     transform-style: preserve-3d;
-    z-index: 10; /* Убеждаемся, что Буба выше других элементов */
+    z-index: 10; 
 }
 
 .buba {
@@ -165,7 +165,25 @@ h1 {
     display: block; 
 }
 
-/* Настройки, Уведомления и Модальное окно — стили без изменений */
+/* Настройки, Уведомления */
+.toggle-settings {
+    text-align: left;
+}
+.setting-group {
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+.toggle {
+    display: block;
+    margin: 10px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.toggle input {
+    display: none;
+}
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -259,7 +277,7 @@ h1 {
     /* КРИТИЧЕСКИ ВАЖНО: прокручиваем содержимое самой секции */
     overflow-y: auto; 
     border-radius: 10px;
-    z-index: 1; /* Убеждаемся, что активная секция выше неактивных */
+    z-index: 1; 
 }
 
 .mobile-mode .section:not(.active) {
