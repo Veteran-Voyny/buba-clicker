@@ -256,11 +256,19 @@ function handleClick(event) {
     updateDisplay();
     
     if (settings.clickEffects) {
-        createClickEffect(event.clientX, event.clientY, `+${clickValue}`);
+        // Для мобильного тача event.clientX/Y может быть в event.touches[0]
+        let clientX = event.clientX;
+        let clientY = event.clientY;
+        if (event.touches && event.touches.length > 0) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        }
+        createClickEffect(clientX, clientY, `+${clickValue}`);
     }
     
-    buba.style.transform = 'scale(0.95)';
-    setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
+    // Анимация здесь теперь не нужна, так как она привязана к mousedown/touchstart
+    // buba.style.transform = 'scale(0.95)';
+    // setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
     
     checkAchievements();
     upgrades.forEach(upgrade => upgrade.updateDisplay());
@@ -523,18 +531,29 @@ function initGame() {
         showSection('settings-section');
     });
 
-    // Обработчик клика по Бубе
-    clickArea.addEventListener('click', handleClick);
+    // --- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: МАКСИМАЛЬНАЯ НАДЕЖНОСТЬ КЛИКОВ НА МОБИЛЬНЫХ ---
     
-    // Обработчики для анимации клика
+    // 1. Начисление очков по клику для ПК
+    clickArea.addEventListener('click', handleClick); 
+    
+    // 2. Начисление очков по тапу для мобильных (Самое надежное событие)
+    clickArea.addEventListener('touchstart', (e) => { 
+        e.preventDefault(); // Ключевой момент: блокируем скролл/зум
+        handleClick(e); // Начисляем очки
+    }); 
+
+    // 3. Анимация нажатия для ПК
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
+    
+    // 4. Анимация отпускания (Универсально для ПК/Мобильных)
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
-    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
-
-    // Обработчики кнопок сохранения/сброса (УДАЛЕНЫ save-button и load-button)
-    // document.getElementById('save-button') и document.getElementById('load-button') удалены
-
+    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
+    
+    // (УДАЛЕНЫ старые обработчики, которые вызывали анимацию, но не начисляли очки)
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+    
+    
+    // Обработчик кнопки сброса
     document.getElementById('reset-button').addEventListener('click', function() {
         resetGame();
     });
@@ -559,7 +578,7 @@ function initGame() {
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
     
-    // Обработчики для модального окна (ИСПРАВЛЕНО: Добавлен touchstart)
+    // Обработчики для модального окна (Добавлены touchstart для надежности)
     const handleMobileSelect = (e) => {
         e.preventDefault(); 
         handleDeviceSelection('mobile');
@@ -583,7 +602,7 @@ function initGame() {
     
     if (!settings.deviceType) {
         deviceSelectModal.classList.add('active'); // Показываем выбор устройства
-        // Причина, по которой вы не видите вкладки и не можете кликать, кроется в этом активном модальном окне.
+        showNotification('ОБРАТИТЕ ВНИМАНИЕ', 'Нажмите "Телефон 📱" или "Компьютер 💻" в центре экрана, чтобы разблокировать игру!');
     } else {
         applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
     }
