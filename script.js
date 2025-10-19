@@ -89,7 +89,7 @@ function showSection(sectionId) {
     const targetSection = document.getElementById(sectionId);
 
     sections.forEach(section => {
-        section.classList.remove('active');
+        if(section) section.classList.remove('active');
     });
     menuButtons.forEach(button => {
         button.classList.remove('active');
@@ -97,7 +97,9 @@ function showSection(sectionId) {
 
     if (targetSection) {
         targetSection.classList.add('active');
-        document.getElementById(`menu-${sectionId.replace('-section', '')}`).classList.add('active');
+        const menuButtonId = `menu-${sectionId.replace('-section', '')}`;
+        const menuButton = document.getElementById(menuButtonId);
+        if (menuButton) menuButton.classList.add('active');
     }
 }
 // ---------------------------------------------
@@ -202,7 +204,8 @@ function applyDeviceSettings(deviceType) {
         document.body.classList.add('mobile-mode');
         settings.tilt3D = false; // Отключаем 3D на мобильном
     } else {
-        // Десктоп по умолчанию без специального класса
+        document.body.classList.add('desktop-mode');
+        settings.tilt3D = true;
     }
     
     updateToggleDisplays();
@@ -263,7 +266,7 @@ function handleClick(event) {
     updateDisplay();
     
     if (settings.clickEffects) {
-        // --- ИСПРАВЛЕНИЕ: Универсальное определение координат ---
+        // --- Универсальное определение координат ---
         let clientX = event.clientX;
         let clientY = event.clientY;
         if (event.touches && event.touches.length > 0) {
@@ -274,7 +277,9 @@ function handleClick(event) {
     }
     
     checkAchievements();
-    upgrades.forEach(upgrade => upgrade.updateDisplay());
+    upgrades.forEach(upgrade => {
+        if (upgrade.updateDisplay) upgrade.updateDisplay();
+    });
 
     if (settings.sounds && !musicPlayed) {
          toggleMusic(true);
@@ -307,7 +312,8 @@ function buyUpgrade(upgradeId) {
         
         upgrade.level++;
         
-        upgrade.cost = upgrade.baseCost * Math.pow(1.5, upgrade.level);
+        // Пересчет стоимости: baseCost * 1.5^level
+        upgrade.cost = Math.floor(upgrade.baseCost * Math.pow(1.5, upgrade.level));
         
         recalculateAllStats(); 
         
@@ -322,6 +328,8 @@ function buyUpgrade(upgradeId) {
 function updateAchievementDisplay() {
     achievements.forEach(achievement => {
         const element = document.getElementById(`achievement-${achievement.id}`);
+        if (!element) return;
+        
         const progressElement = element.querySelector('.achievement-progress');
         
         if (achievement.unlocked) {
@@ -329,7 +337,7 @@ function updateAchievementDisplay() {
             progressElement.textContent = `${achievement.clicks} кликов (ВЫПОЛНЕНО)`;
         } else {
             element.classList.remove('unlocked');
-            progressElement.textContent = `${achievement.clicks} кликов`;
+            progressElement.textContent = `${totalClicks}/${achievement.clicks} кликов`;
         }
     });
 }
@@ -353,7 +361,9 @@ function checkAchievements() {
     if (unlocked) {
         updateDisplay();
         updateAchievementDisplay();
-        upgrades.forEach(upgrade => upgrade.updateDisplay());
+        upgrades.forEach(upgrade => {
+            if (upgrade.updateDisplay) upgrade.updateDisplay();
+        });
     }
 }
 
@@ -365,7 +375,10 @@ function updateDisplay() {
     totalClicksDisplay.textContent = totalClicks;
     playTimeDisplay.textContent = gameTimeSeconds;
     
-    upgrades.forEach(upgrade => upgrade.updateDisplay());
+    upgrades.forEach(upgrade => {
+        if (upgrade.updateDisplay) upgrade.updateDisplay();
+    });
+    updateAchievementDisplay();
 }
 
 // Сохранение прогресса
@@ -424,10 +437,6 @@ function loadProgress() {
             
             recalculateAllStats();
             
-            upgrades.forEach(upgrade => upgrade.updateDisplay());
-            updateAchievementDisplay();
-            updateToggleDisplays();
-            
             if (settings.deviceType) {
                 applyDeviceSettings(settings.deviceType);
             }
@@ -442,7 +451,6 @@ function loadProgress() {
         }
     } else {
         recalculateAllStats();
-        updateAchievementDisplay();
         updateToggleDisplays();
     }
 }
@@ -470,10 +478,12 @@ function resetGame() {
         });
         
         recalculateAllStats();
-        upgrades.forEach(upgrade => upgrade.updateDisplay());
-        updateAchievementDisplay();
-        updateToggleDisplays();
-        applyDeviceSettings(deviceType); 
+        
+        if (deviceType) {
+            applyDeviceSettings(deviceType); 
+        } else {
+            updateToggleDisplays();
+        }
         
         showNotification('Игра сброшена', 'Весь прогресс удален!');
     }
@@ -493,14 +503,14 @@ function gameTimerTick() {
     playTimeDisplay.textContent = gameTimeSeconds;
 }
 
-// --- ФУНКЦИИ ДЛЯ ОБРАБОТКИ МЕНЮ (чтобы избежать дублирования кода) ---
-const handleMenuClick = (sectionId) => (e) => {
-    // В APK/мобильном режиме используем touchstart, чтобы предотвратить скролл и задержку
+// --- ФУНКЦИИ ДЛЯ ОБРАБОТКИ МЕНЮ (для тапов и кликов) ---
+const handleMenuAction = (sectionId) => (e) => {
+    // Если это touch event, предотвращаем скролл/задержку
     if (e.type === 'touchstart') {
         e.preventDefault();
         showSection(sectionId);
     } 
-    // На ПК/Десктопе используем обычный click
+    // Обрабатываем click (для ПК и в качестве запасного варианта)
     if (e.type === 'click') {
         showSection(sectionId);
     }
@@ -517,43 +527,47 @@ function initGame() {
         const costElement = document.getElementById(`cost-${upgrade.id}`);
         const levelElement = document.getElementById(`level-${upgrade.id}`);
         
-        // Обработчики улучшения (только click, так как это не fullscreen элемент)
-        element.addEventListener('click', function() {
-            buyUpgrade(upgrade.id);
-        });
-        
-        upgrade.updateDisplay = function() {
-            costElement.textContent = Math.floor(this.cost);
-            levelElement.textContent = this.level;
+        if (element) {
+            // Обработчик покупки улучшения
+            element.addEventListener('click', function() {
+                buyUpgrade(upgrade.id);
+            });
             
-            if (score >= this.cost) {
-                element.classList.add('can-buy');
-                element.classList.remove('disabled');
-            } else {
-                element.classList.remove('can-buy');
-                element.classList.add('disabled');
-            }
-        };
+            upgrade.updateDisplay = function() {
+                costElement.textContent = Math.floor(this.cost);
+                levelElement.textContent = this.level;
+                
+                if (score >= this.cost) {
+                    element.classList.add('can-buy');
+                    element.classList.remove('disabled');
+                } else {
+                    element.classList.remove('can-buy');
+                    element.classList.add('disabled');
+                }
+            };
+        }
     });
     
-    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики для кнопок меню (Табы) ---
+    // --- ИСПРАВЛЕНИЕ: Обработчики для кнопок меню (Табы) ---
     const menuUpgrades = document.getElementById('menu-upgrades');
     const menuAchievements = document.getElementById('menu-achievements');
     const menuSettings = document.getElementById('menu-settings');
 
-    menuUpgrades.addEventListener('click', handleMenuClick('upgrades-section'));
-    menuUpgrades.addEventListener('touchstart', handleMenuClick('upgrades-section'));
+    [menuUpgrades, menuAchievements, menuSettings].forEach(button => {
+        if (button) {
+            const sectionId = button.id.replace('menu-', '') + '-section';
+            // Обрабатываем tap (touchstart) для мобильных
+            button.addEventListener('touchstart', handleMenuAction(sectionId));
+            // Обрабатываем click для ПК
+            button.addEventListener('click', handleMenuAction(sectionId));
+        }
+    });
 
-    menuAchievements.addEventListener('click', handleMenuClick('achievements-section'));
-    menuAchievements.addEventListener('touchstart', handleMenuClick('achievements-section'));
-
-    menuSettings.addEventListener('click', handleMenuClick('settings-section'));
-    menuSettings.addEventListener('touchstart', handleMenuClick('settings-section'));
-
-    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики кликов на Бубе ---
+    // --- ИСПРАВЛЕНИЕ: Обработчики кликов/тапов на Бубе ---
     
     // Начисление очков по клику для ПК/Десктопа
     clickArea.addEventListener('click', (e) => {
+        // Проверяем, что это не мобильный режим (чтобы избежать двойных кликов)
         if (settings.deviceType !== 'mobile') {
             handleClick(e);
         }
@@ -563,15 +577,16 @@ function initGame() {
     clickArea.addEventListener('touchstart', (e) => { 
         e.preventDefault(); // Ключевой момент: блокируем скролл/зум
         handleClick(e); // Начисляем очки
-    }); 
+    }, { passive: false }); // {passive: false} гарантирует, что preventDefault сработает
 
     // Обработчики для анимации нажатия/отпускания
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('touchstart', (e) => { buba.style.transform = 'scale(0.95)'});
+    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); // Сброс анимации при уходе курсора
+    clickArea.addEventListener('touchstart', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
     
-    // Обработчики кнопок сохранения/сброса
+    // Обработчики кнопок сохранения/сброса (используем только click, так как это внутри прокручиваемой секции)
     document.getElementById('save-button').addEventListener('click', function() {
         saveProgress();
         showNotification('Сохранение', 'Прогресс успешно сохранен!');
@@ -605,9 +620,9 @@ function initGame() {
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
     
-    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики для модального окна ---
+    // --- ИСПРАВЛЕНИЕ: Обработчики для кнопок модального окна (с tap-fix) ---
     const handleDeviceSelect = (deviceType) => (e) => {
-        e.preventDefault(); // Ключевой момент: предотвращает сбой тапа
+        if (e.type === 'touchstart') e.preventDefault();
         handleDeviceSelection(deviceType);
     };
 
@@ -616,4 +631,27 @@ function initGame() {
     
     selectDesktopButton.addEventListener('click', handleDeviceSelect('desktop'));
     selectDesktopButton.addEventListener('touchstart', handleDeviceSelect('desktop'));
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО ОКНА ---
+
+    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ --
+    window.addEventListener('beforeunload', saveProgress);
+    window.addEventListener('pagehide', saveProgress); 
+
+    loadProgress(); 
+    
+    if (!settings.deviceType) {
+        deviceSelectModal.classList.add('active'); // Показываем выбор устройства
+    } else {
+        applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
+    }
+    
+    showSection('upgrades-section');
+    
+    // Запускаем таймеры
+    setInterval(saveProgress, 30000); 
+    setInterval(passiveIncomeTick, 1000); 
+    setInterval(gameTimerTick, 1000); 
+}
+
+// Запуск игры при загрузке страницы
+document.addEventListener('DOMContentLoaded', initGame);
