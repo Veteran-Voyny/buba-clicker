@@ -62,6 +62,11 @@ const selectMobileButton = document.getElementById('select-mobile');
 const selectDesktopButton = document.getElementById('select-desktop');
 const deviceTypeDisplay = document.getElementById('device-type-display');
 
+// --- ДОБАВЛЕНЫ: Переменные для отслеживания главного прослушивателя события клика ---
+let currentClickListener = null;
+let currentListenerType = null;
+// ---------------------------------------------------------------------------------
+
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
 function toggleMusic(play) {
     if (play) {
@@ -89,7 +94,7 @@ function showSection(sectionId) {
     const targetSection = document.getElementById(sectionId);
 
     sections.forEach(section => {
-        if(section) section.classList.remove('active');
+        section.classList.remove('active');
     });
     menuButtons.forEach(button => {
         button.classList.remove('active');
@@ -97,9 +102,7 @@ function showSection(sectionId) {
 
     if (targetSection) {
         targetSection.classList.add('active');
-        const menuButtonId = `menu-${sectionId.replace('-section', '')}`;
-        const menuButton = document.getElementById(menuButtonId);
-        if (menuButton) menuButton.classList.add('active');
+        document.getElementById(`menu-${sectionId.replace('-section', '')}`).classList.add('active');
     }
 }
 // ---------------------------------------------
@@ -157,7 +160,7 @@ function initTiltEffect() {
     stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
     bubaImage.style.transform = 'translateX(0px) translateY(0px)';
     
-    if (settings.tilt3D && settings.deviceType === 'desktop') { 
+    if (settings.tilt3D && settings.deviceType === 'desktop') { // 3D только для десктопа
         if (tiltInstruction) tiltInstruction.style.display = 'block';
 
         tiltEffectListener = (e) => {
@@ -195,6 +198,28 @@ function initTiltEffect() {
     }
 }
 
+// --- НОВАЯ ФУНКЦИЯ: Установка прослушивателей кликов/тапов ---
+function setupClickListeners() {
+    // 1. Очистка старого прослушивателя
+    if (currentClickListener && currentListenerType) {
+        clickArea.removeEventListener(currentListenerType, currentClickListener);
+    }
+    
+    // 2. Определение нового прослушивателя и типа
+    if (settings.deviceType === 'mobile') {
+        // На мобильном используем touchend для моментального действия (без задержки клика)
+        currentListenerType = 'touchend';
+        currentClickListener = handleClick; 
+    } else {
+        // На компьютере используем стандартный click
+        currentListenerType = 'click';
+        currentClickListener = handleClick;
+    }
+    
+    // 3. Добавление нового прослушивателя
+    clickArea.addEventListener(currentListenerType, currentClickListener);
+}
+
 // --- ФУНКЦИИ ДЛЯ ВЫБОРА УСТРОЙСТВА ---
 function applyDeviceSettings(deviceType) {
     settings.deviceType = deviceType;
@@ -202,19 +227,19 @@ function applyDeviceSettings(deviceType) {
     
     if (deviceType === 'mobile') {
         document.body.classList.add('mobile-mode');
-        settings.tilt3D = false; 
+        settings.tilt3D = false; // Отключаем 3D на мобильном
     } else {
-        document.body.classList.add('desktop-mode');
-        settings.tilt3D = true;
+        // Десктоп по умолчанию без специального класса
     }
     
     updateToggleDisplays();
+    setupClickListeners(); // ДОБАВЛЕНО: Устанавливаем корректный прослушиватель клика
     saveProgress();
 }
 
 function handleDeviceSelection(deviceType) {
     applyDeviceSettings(deviceType);
-    deviceSelectModal.classList.remove('active'); // КРИТИЧЕСКИ ВАЖНО: Скрываем модальное окно!
+    deviceSelectModal.classList.remove('active'); 
     
     const message = deviceType === 'mobile' ? 'Режим "Телефон" активирован. Интерфейс вертикальный.' : 'Режим "Компьютер" активирован. Включены все визуальные эффекты.';
     showNotification(`Выбрано: ${deviceType === 'mobile' ? 'Телефон' : 'Компьютер'}`, message);
@@ -236,7 +261,7 @@ function updateToggleDisplays() {
     deviceTypeDisplay.textContent = deviceName;
 
     if (settings.deviceType === 'mobile') {
-        toggle3D.disabled = true; 
+        toggle3D.disabled = true; // Запрещаем 3D на мобильном
     } else {
         toggle3D.disabled = false;
     }
@@ -261,391 +286,5 @@ function handleImageError() {
 
 // Функция клика
 function handleClick(event) {
-    score += clickValue;
-    totalClicks++;
-    updateDisplay();
-    
-    if (settings.clickEffects) {
-        // --- Универсальное определение координат ---
-        let clientX = event.clientX;
-        let clientY = event.clientY;
-        if (event.touches && event.touches.length > 0) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-        }
-        createClickEffect(clientX, clientY, `+${clickValue}`);
-    }
-    
-    checkAchievements();
-    upgrades.forEach(upgrade => {
-        if (upgrade.updateDisplay) upgrade.updateDisplay();
-    });
-
-    if (settings.sounds && !musicPlayed) {
-         toggleMusic(true);
-    }
-}
-
-// Создание эффекта клика
-function createClickEffect(x, y, text) {
-    const effect = document.createElement('div');
-    effect.className = 'click-effect';
-    effect.textContent = text;
-    
-    const offsetX = Math.random() * 40 - 20; 
-    const offsetY = Math.random() * 40 - 20;
-
-    effect.style.left = `${x + offsetX}px`;
-    effect.style.top = `${y + offsetY}px`;
-    
-    document.body.appendChild(effect);
-    
-    setTimeout(() => { effect.remove(); }, 1000);
-}
-
-// Покупка улучшения
-function buyUpgrade(upgradeId) {
-    const upgrade = upgrades.find(u => u.id === upgradeId);
-    
-    if (score >= upgrade.cost) {
-        score -= upgrade.cost;
-        
-        upgrade.level++;
-        
-        // Пересчет стоимости: baseCost * 1.5^level
-        upgrade.cost = Math.floor(upgrade.baseCost * Math.pow(1.5, upgrade.level));
-        
-        recalculateAllStats(); 
-        
-        upgrade.updateDisplay();
-        showNotification('Улучшение куплено!', `"${upgrade.name}" успешно приобретено!`);
-    } else {
-        showNotification('Недостаточно очков', 'Нужно больше очков для покупки этого улучшения');
-    }
-}
-
-// Обновление прогресса достижений в DOM
-function updateAchievementDisplay() {
-    achievements.forEach(achievement => {
-        const element = document.getElementById(`achievement-${achievement.id}`);
-        if (!element) return;
-        
-        const progressElement = element.querySelector('.achievement-progress');
-        
-        if (achievement.unlocked) {
-            element.classList.add('unlocked');
-            progressElement.textContent = `${achievement.clicks} кликов (ВЫПОЛНЕНО)`;
-        } else {
-            element.classList.remove('unlocked');
-            progressElement.textContent = `${totalClicks}/${achievement.clicks} кликов`;
-        }
-    });
-}
-
-// Проверка достижений
-function checkAchievements() {
-    let unlocked = false;
-    
-    achievements.forEach(achievement => {
-        if (!achievement.unlocked && totalClicks >= achievement.clicks) {
-            achievement.unlocked = true;
-            unlocked = true;
-            
-            const reward = achievement.clicks * 2;
-            score += reward;
-            
-            showNotification('Достижение разблокировано!', `${achievement.clicks} кликов! +${reward} очков`);
-        }
-    });
-    
-    if (unlocked) {
-        updateDisplay();
-        updateAchievementDisplay();
-        upgrades.forEach(upgrade => {
-            if (upgrade.updateDisplay) upgrade.updateDisplay();
-        });
-    }
-}
-
-// Обновление отображения
-function updateDisplay() {
-    scoreElement.textContent = Math.floor(score);
-    clickValueElement.textContent = clickValue;
-    passiveIncomeElement.textContent = passiveIncome;
-    totalClicksDisplay.textContent = totalClicks;
-    playTimeDisplay.textContent = gameTimeSeconds;
-    
-    upgrades.forEach(upgrade => {
-        if (upgrade.updateDisplay) upgrade.updateDisplay();
-    });
-    updateAchievementDisplay();
-}
-
-// Сохранение прогресса
-function saveProgress() {
-    const gameData = {
-        score,
-        totalClicks,
-        gameTimeSeconds,
-        settings, 
-        upgrades: upgrades.map(upgrade => ({
-            id: upgrade.id,
-            level: upgrade.level,
-            cost: upgrade.cost
-        })),
-        achievements: achievements.map(achievement => ({
-            id: achievement.id,
-            unlocked: achievement.unlocked
-        }))
-    };
-    
-    localStorage.setItem('bubaClickerSave', JSON.stringify(gameData));
-    console.log("Прогресс сохранен.");
-}
-
-// Загрузка прогресса
-function loadProgress() {
-    const savedData = localStorage.getItem('bubaClickerSave');
-    if (savedData) {
-        try {
-            const gameData = JSON.parse(savedData);
-            
-            score = gameData.score || 0;
-            totalClicks = gameData.totalClicks || 0;
-            gameTimeSeconds = gameData.gameTimeSeconds || 0;
-            
-            if (gameData.settings) { settings = {...settings, ...gameData.settings}; }
-            
-            if (gameData.upgrades) {
-                gameData.upgrades.forEach(savedUpgrade => {
-                    const upgrade = upgrades.find(u => u.id === savedUpgrade.id);
-                    if (upgrade) {
-                        upgrade.level = savedUpgrade.level || 0;
-                        upgrade.cost = savedUpgrade.cost || upgrade.baseCost;
-                    }
-                });
-            }
-            
-            if (gameData.achievements) {
-                gameData.achievements.forEach(savedAchievement => {
-                    const achievement = achievements.find(a => a.id === savedAchievement.id);
-                    if (achievement) {
-                        achievement.unlocked = savedAchievement.unlocked || false;
-                    }
-                });
-            }
-            
-            recalculateAllStats();
-            
-            if (settings.deviceType) {
-                applyDeviceSettings(settings.deviceType);
-            }
-            
-            showNotification('Прогресс загружен', 'Ваш прогресс успешно восстановлен!');
-            
-        } catch (error) {
-            console.error('Ошибка загрузки:', error);
-            showNotification('Ошибка', 'Не удалось загрузить сохранение');
-            recalculateAllStats();
-            updateToggleDisplays();
-        }
-    } else {
-        recalculateAllStats();
-        updateToggleDisplays();
-    }
-}
-
-// Сброс игры
-function resetGame() {
-    if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
-        localStorage.removeItem('bubaClickerSave');
-        
-        const deviceType = settings.deviceType; 
-        
-        score = 0;
-        totalClicks = 0;
-        gameTimeSeconds = 0;
-
-        settings = { tilt3D: true, clickEffects: true, sounds: true, deviceType: deviceType };
-        
-        upgrades.forEach(upgrade => {
-            upgrade.level = 0;
-            upgrade.cost = upgrade.baseCost;
-        });
-        
-        achievements.forEach(achievement => {
-            achievement.unlocked = false;
-        });
-        
-        recalculateAllStats();
-        
-        if (deviceType) {
-            applyDeviceSettings(deviceType); 
-        } else {
-            updateToggleDisplays();
-        }
-        
-        showNotification('Игра сброшена', 'Весь прогресс удален!');
-    }
-}
-
-// Пассивный доход
-function passiveIncomeTick() {
-    if (passiveIncome > 0) {
-        score += passiveIncome;
-        updateDisplay();
-    }
-}
-
-// Таймер игры
-function gameTimerTick() {
-    gameTimeSeconds++;
-    playTimeDisplay.textContent = gameTimeSeconds;
-}
-
-// --- ФУНКЦИИ ДЛЯ ОБРАБОТКИ МЕНЮ (для тапов и кликов) ---
-const handleMenuAction = (sectionId) => (e) => {
-    if (e.type === 'touchstart') {
-        e.preventDefault();
-        showSection(sectionId);
-    } 
-    if (e.type === 'click') {
-        showSection(sectionId);
-    }
-};
-
-// --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
-function initGame() {
-    
-    bubaImage.onerror = handleImageError;
-    
-    // Инициализация улучшений
-    upgrades.forEach(upgrade => {
-        const element = document.getElementById(`upgrade-${upgrade.id}`);
-        const costElement = document.getElementById(`cost-${upgrade.id}`);
-        const levelElement = document.getElementById(`level-${upgrade.id}`);
-        
-        if (element) {
-            element.addEventListener('click', function() {
-                buyUpgrade(upgrade.id);
-            });
-            
-            upgrade.updateDisplay = function() {
-                costElement.textContent = Math.floor(this.cost);
-                levelElement.textContent = this.level;
-                
-                if (score >= this.cost) {
-                    element.classList.add('can-buy');
-                    element.classList.remove('disabled');
-                } else {
-                    element.classList.remove('can-buy');
-                    element.classList.add('disabled');
-                }
-            };
-        }
-    });
-    
-    // --- ИСПРАВЛЕНИЕ: Обработчики для кнопок меню (Табы) ---
-    const menuUpgrades = document.getElementById('menu-upgrades');
-    const menuAchievements = document.getElementById('menu-achievements');
-    const menuSettings = document.getElementById('menu-settings');
-
-    [menuUpgrades, menuAchievements, menuSettings].forEach(button => {
-        if (button) {
-            const sectionId = button.id.replace('menu-', '') + '-section';
-            button.addEventListener('touchstart', handleMenuAction(sectionId));
-            button.addEventListener('click', handleMenuAction(sectionId));
-        }
-    });
-
-    // --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Обработчики кликов/тапов на Бубе ---
-    
-    // Начисление очков по клику для ПК/Десктопа
-    clickArea.addEventListener('click', (e) => {
-        if (settings.deviceType !== 'mobile') {
-            handleClick(e);
-        }
-    }); 
-    
-    // Начисление очков по тапу для мобильных/APK (Самое надежное событие)
-    clickArea.addEventListener('touchstart', (e) => { 
-        e.preventDefault(); // БЛОКИРУЕМ СКРОЛЛ/ЗУМ ДЛЯ КОРРЕКТНОЙ РЕГИСТРАЦИИ ТАПА
-        handleClick(e); 
-    }, { passive: false }); 
-
-    // Обработчики для анимации нажатия/отпускания
-    clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
-    clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); 
-    clickArea.addEventListener('touchstart', () => buba.style.transform = 'scale(0.95)');
-    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
-    
-    // Обработчики кнопок сохранения/сброса
-    document.getElementById('save-button').addEventListener('click', function() {
-        saveProgress();
-        showNotification('Сохранение', 'Прогресс успешно сохранен!');
-    });
-    
-    document.getElementById('load-button').addEventListener('click', function() {
-        loadProgress();
-    });
-    
-    document.getElementById('reset-button').addEventListener('click', function() {
-        resetGame();
-    });
-    
-    // Обработчики переключателей настроек
-    toggle3D.addEventListener('change', function() {
-        settings.tilt3D = this.checked;
-        initTiltEffect();
-        saveProgress();
-        showNotification('Настройки', `3D эффект ${this.checked ? 'включен' : 'выключен'}`);
-    });
-
-    toggleEffects.addEventListener('change', function() {
-        settings.clickEffects = this.checked;
-        saveProgress();
-        showNotification('Настройки', `Эффекты кликов ${this.checked ? 'включены' : 'выключены'}`);
-    });
-
-    toggleSounds.addEventListener('change', function() {
-        toggleMusic(this.checked);
-        saveProgress();
-        showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
-    });
-    
-    // --- ИСПРАВЛЕНИЕ: Обработчики для кнопок модального окна (с tap-fix) ---
-    const handleDeviceSelect = (deviceType) => (e) => {
-        if (e.type === 'touchstart') e.preventDefault();
-        handleDeviceSelection(deviceType);
-    };
-
-    selectMobileButton.addEventListener('click', handleDeviceSelect('mobile'));
-    selectMobileButton.addEventListener('touchstart', handleDeviceSelect('mobile'));
-    
-    selectDesktopButton.addEventListener('click', handleDeviceSelect('desktop'));
-    selectDesktopButton.addEventListener('touchstart', handleDeviceSelect('desktop'));
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО ОКНА ---
-
-    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ --
-    window.addEventListener('beforeunload', saveProgress);
-    window.addEventListener('pagehide', saveProgress); 
-
-    loadProgress(); 
-    
-    if (!settings.deviceType) {
-        deviceSelectModal.classList.add('active'); // Показываем выбор устройства, если не выбран
-    } else {
-        applyDeviceSettings(settings.deviceType); 
-    }
-    
-    showSection('upgrades-section');
-    
-    // Запускаем таймеры
-    setInterval(saveProgress, 30000); 
-    setInterval(passiveIncomeTick, 1000); 
-    setInterval(gameTimerTick, 1000); 
-}
-
-// Запуск игры при загрузке страницы
-document.addEventListener('DOMContentLoaded', initGame);
+    // ВАЖНО: Проверяем, что это не сработавший tap, если у нас уже был клик.
+    // На мобильных устройствах, если мы слушаем 'touchend', этот код выполнится
