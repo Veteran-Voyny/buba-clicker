@@ -44,18 +44,11 @@
             <div class="buba-container" id="buba-container">
                 <div class="buba" id="buba">
                     <div class="buba-content">
-                        <img src="buba.png" alt="Буба" class="buba-image" id="buba-image">
-                        <div class="buba-overlay">
-                            <div class="buba-text">КЛИКАЙ НА МЕНЯ!</div>
-                        </div>
+                        <img id="buba-image" src="buba.png" alt="Буба - жми на меня">
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="instructions">
-            <p>💡 <strong>Кликайте на Бубу</strong> для заработка очков и покупайте улучшения!</p>
-            <p style="margin-top: 5px;" id="tilt-instruction">Двигайте мышкой для легкого 3D эффекта!</p> 
+            <p class="instructions" id="tilt-instruction">Наведите курсор на Бубу для 3D эффекта!</p>
         </div>
 
         <div class="navigation-menu" id="navigation-menu">
@@ -184,4 +177,11 @@
                 </div>
             </div>
         </div>
-        ```
+        </div>
+
+    <audio id="game-music" src="music.mp3" loop></audio>
+    <div class="notification" id="notification-area"></div> 
+
+    <script src="script.js"></script>
+</body>
+</html>
