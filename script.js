@@ -266,10 +266,6 @@ function handleClick(event) {
         createClickEffect(clientX, clientY, `+${clickValue}`);
     }
     
-    // Анимация здесь теперь не нужна, так как она привязана к mousedown/touchstart
-    // buba.style.transform = 'scale(0.95)';
-    // setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
-    
     checkAchievements();
     upgrades.forEach(upgrade => upgrade.updateDisplay());
 
@@ -531,26 +527,23 @@ function initGame() {
         showSection('settings-section');
     });
 
-    // --- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: МАКСИМАЛЬНАЯ НАДЕЖНОСТЬ КЛИКОВ НА МОБИЛЬНЫХ ---
+    // --- НАДЕЖНЫЕ ОБРАБОТЧИКИ КЛИКОВ НА БУБЕ ---
     
-    // 1. Начисление очков по клику для ПК
+    // Начисление очков по клику для ПК
     clickArea.addEventListener('click', handleClick); 
     
-    // 2. Начисление очков по тапу для мобильных (Самое надежное событие)
+    // Начисление очков по тапу для мобильных (Самое надежное событие)
     clickArea.addEventListener('touchstart', (e) => { 
         e.preventDefault(); // Ключевой момент: блокируем скролл/зум
         handleClick(e); // Начисляем очки
     }); 
 
-    // 3. Анимация нажатия для ПК
+    // Анимация нажатия/отпускания (Универсально)
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
-    
-    // 4. Анимация отпускания (Универсально для ПК/Мобильных)
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
     
-    // (УДАЛЕНЫ старые обработчики, которые вызывали анимацию, но не начисляли очки)
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ КЛИКОВ НА БУБЕ ---
     
     
     // Обработчик кнопки сброса
@@ -578,13 +571,13 @@ function initGame() {
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
     
-    // Обработчики для модального окна (Добавлены touchstart для надежности)
+    // --- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ОБРАБОТЧИКИ МОДАЛЬНОГО ОКНА ---
     const handleMobileSelect = (e) => {
-        e.preventDefault(); 
+        e.preventDefault(); // ПРЕДОТВРАЩАЕТ СБОЙ ТАПА НА МОБИЛЬНЫХ
         handleDeviceSelection('mobile');
     };
     const handleDesktopSelect = (e) => {
-        e.preventDefault(); 
+        e.preventDefault(); // ПРЕДОТВРАЩАЕТ СБОЙ ТАПА НА МОБИЛЬНЫХ
         handleDeviceSelection('desktop');
     };
 
@@ -593,8 +586,9 @@ function initGame() {
     
     selectDesktopButton.addEventListener('click', handleDesktopSelect);
     selectDesktopButton.addEventListener('touchstart', handleDesktopSelect);
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО ОКНА ---
 
-    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ ---
+    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ --
     window.addEventListener('beforeunload', saveProgress);
     window.addEventListener('pagehide', saveProgress); 
 
