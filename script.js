@@ -179,13 +179,6 @@ function initTiltEffect() {
             bubaImage.style.transform = `translateX(${imageMoveX}px) translateY(${imageMoveY}px)`;
         };
 
-        mouseLeaveListener = () => {
-            bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            header.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            bubaImage.style.transform = 'translateX(0px) translateY(0px)';
-        };
-
         document.addEventListener('mousemove', tiltEffectListener);
         document.addEventListener('mouseleave', mouseLeaveListener);
     } else {
@@ -428,11 +421,11 @@ function loadProgress() {
                 applyDeviceSettings(settings.deviceType);
             }
             
-            // showNotification('Прогресс загружен', 'Ваш прогресс успешно восстановлен!'); // Убрано, т.к. автоматическая загрузка должна быть бесшумной
+            showNotification('Прогресс загружен', 'Ваш прогресс успешно восстановлен!');
             
         } catch (error) {
             console.error('Ошибка загрузки:', error);
-            // showNotification('Ошибка', 'Не удалось загрузить сохранение'); // Убрано
+            showNotification('Ошибка', 'Не удалось загрузить сохранение');
             recalculateAllStats();
             updateToggleDisplays();
         }
@@ -539,8 +532,9 @@ function initGame() {
     clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
 
-    // Обработчики кнопок сохранения/сброса (КНОПКИ SAVE/LOAD УДАЛЕНЫ)
-    
+    // Обработчики кнопок сохранения/сброса (УДАЛЕНЫ save-button и load-button)
+    // document.getElementById('save-button') и document.getElementById('load-button') удалены
+
     document.getElementById('reset-button').addEventListener('click', function() {
         resetGame();
     });
@@ -565,9 +559,21 @@ function initGame() {
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
     
-    // Обработчики для модального окна
-    selectMobileButton.addEventListener('click', () => handleDeviceSelection('mobile'));
-    selectDesktopButton.addEventListener('click', () => handleDeviceSelection('desktop'));
+    // Обработчики для модального окна (ИСПРАВЛЕНО: Добавлен touchstart)
+    const handleMobileSelect = (e) => {
+        e.preventDefault(); 
+        handleDeviceSelection('mobile');
+    };
+    const handleDesktopSelect = (e) => {
+        e.preventDefault(); 
+        handleDeviceSelection('desktop');
+    };
+
+    selectMobileButton.addEventListener('click', handleMobileSelect);
+    selectMobileButton.addEventListener('touchstart', handleMobileSelect);
+    
+    selectDesktopButton.addEventListener('click', handleDesktopSelect);
+    selectDesktopButton.addEventListener('touchstart', handleDesktopSelect);
 
     // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ ---
     window.addEventListener('beforeunload', saveProgress);
@@ -577,6 +583,7 @@ function initGame() {
     
     if (!settings.deviceType) {
         deviceSelectModal.classList.add('active'); // Показываем выбор устройства
+        // Причина, по которой вы не видите вкладки и не можете кликать, кроется в этом активном модальном окне.
     } else {
         applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
     }
