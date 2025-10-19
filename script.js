@@ -1,290 +1,693 @@
-// Игровые переменные
-let score = 0;
-let clickValue = 1;
-let passiveIncome = 0;
-let totalClicks = 0;
-let gameTimeSeconds = 0; 
+/* Глобальные стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-// Настройки
-let settings = {
-    tilt3D: true,
-    clickEffects: true,
-    sounds: true, 
-    deviceType: null // 'mobile', 'desktop', или null
-};
+body {
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+    perspective: 1000px; /* Для 3D-эффекта */
+}
 
-// Переменная состояния музыки
-let musicPlayed = false;
+.container {
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+}
 
-// Улучшения
-const upgrades = [
-    { id: 1, name: "Усиленный палец", baseCost: 10, cost: 10, level: 0, effect: 1, description: "Увеличивает очки за клик на 1" },
-    { id: 2, name: "Автокликер", baseCost: 50, cost: 50, level: 0, effect: 1, description: "Добавляет 1 очко в секунду" },
-    { id: 3, name: "Золотой палец", baseCost: 200, cost: 200, level: 0, effect: 5, description: "Увеличивает очки за клик на 5" },
-    { id: 4, name: "Фабрика кликов", baseCost: 1000, cost: 1000, level: 0, effect: 10, description: "Добавляет 10 очков в секунду" }
-];
+header {
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid gold;
+    transition: transform 0.2s ease;
+    transform-style: preserve-3d; /* Для 3D-эффекта */
+}
 
-// Достижения
-const achievements = [
-    { id: 1, clicks: 10, unlocked: false },
-    { id: 2, clicks: 50, unlocked: false },
-    { id: 3, clicks: 100, unlocked: false },
-    { id: 4, clicks: 500, unlocked: false }
-];
+h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
 
-// Элементы DOM
-const scoreElement = document.getElementById('score');
-const clickValueElement = document.getElementById('click-value');
-const passiveIncomeElement = document.getElementById('passive-income');
-const clickArea = document.getElementById('click-area');
-const bubaContainer = document.getElementById('buba-container');
-const buba = document.getElementById('buba');
-const bubaImage = document.getElementById('buba-image');
-const header = document.getElementById('header');
-const stats = document.getElementById('stats');
-const totalClicksDisplay = document.getElementById('total-clicks-display');
-const playTimeDisplay = document.getElementById('play-time');
-const toggle3D = document.getElementById('toggle-3d');
-const toggleEffects = document.getElementById('toggle-effects');
-const toggleSounds = document.getElementById('toggle-sounds');
-const gameMusic = document.getElementById('game-music'); 
-const tiltInstruction = document.getElementById('tilt-instruction'); 
+.stats {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+    transform-style: preserve-3d; /* Для 3D-эффекта */
+}
 
-// Элементы для меню
-const upgradesSection = document.getElementById('upgrades-section');
-const achievementsSection = document.getElementById('achievements-section');
-const settingsSection = document.getElementById('settings-section');
-const menuButtons = document.querySelectorAll('.menu-button');
+.stat-item {
+    padding: 0 10px;
+}
 
-// Элементы для модального окна
-const deviceSelectModal = document.getElementById('device-select-modal');
-const selectMobileButton = document.getElementById('select-mobile');
-const selectDesktopButton = document.getElementById('select-desktop');
-const deviceTypeDisplay = document.getElementById('device-type-display');
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
 
-// --- ДОБАВЛЕНЫ: Переменные для отслеживания главного прослушивателя события клика ---
-let currentClickListener = null;
-let currentListenerType = null;
-// ---------------------------------------------------------------------------------
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #4CAF50; /* Зеленый для активных значений */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
 
-// --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
-function toggleMusic(play) {
-    if (play) {
-        const playPromise = gameMusic.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                gameMusic.volume = 0.3; 
-                musicPlayed = true;
-            }).catch(error => {
-                console.log("Музыка заблокирована браузером.");
-                musicPlayed = false;
-            });
-        }
-    } else {
-        gameMusic.pause();
-        musicPlayed = false;
+.instructions {
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Секция кликабельной области (Буба) */
+.click-area {
+    margin-bottom: 40px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+}
+
+.buba-container {
+    width: 250px;
+    height: 250px;
+    transition: transform 0.2s ease;
+    transform-style: preserve-3d;
+}
+
+.buba {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, #FFD700, #FFA500);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 
+                0 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: transform 0.1s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.buba-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.buba-image {
+    /* ИСПРАВЛЕНИЕ: Увеличен размер до 85% для лучшей видимости */
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+}
+
+.buba-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 10px 0;
+    border-radius: 0 0 50% 50% / 0 0 30% 30%;
+}
+
+.buba-text {
+    font-weight: bold;
+    color: #FFD700;
+    font-size: 1.2rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Эффект клика (летающие цифры) */
+.click-effect {
+    position: fixed;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4CAF50;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    animation: fade-up 1s ease-out forwards;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes fade-up {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
     }
-    settings.sounds = play;
-}
-// ---------------------------------
-
-// --- ФУНКЦИЯ: Переключение разделов ---
-function showSection(sectionId) {
-    const sections = [upgradesSection, achievementsSection, settingsSection];
-    const targetSection = document.getElementById(sectionId);
-
-    sections.forEach(section => {
-        section.classList.remove('active');
-    });
-    menuButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-
-    if (targetSection) {
-        targetSection.classList.add('active');
-        document.getElementById(`menu-${sectionId.replace('-section', '')}`).classList.add('active');
-    }
-}
-// ---------------------------------------------
-
-function recalculateAllStats() {
-    let newClickValue = 1;
-    let newPassiveIncome = 0;
-    
-    upgrades.forEach(upgrade => {
-        if (upgrade.id === 1 || upgrade.id === 3) {
-            newClickValue += upgrade.level * upgrade.effect;
-        } else if (upgrade.id === 2 || upgrade.id === 4) {
-            newPassiveIncome += upgrade.level * upgrade.effect;
-        }
-    });
-    
-    clickValue = newClickValue;
-    passiveIncome = newPassiveIncome;
-    updateDisplay();
-}
-
-// Функция для показа уведомлений
-function showNotification(title, message) {
-    const notificationArea = document.getElementById('notification-area');
-    if (!notificationArea) return;
-    
-    notificationArea.classList.remove('show', 'hide');
-    
-    notificationArea.innerHTML = '';
-    
-    notificationArea.innerHTML = `
-        <div class="notification-title">${title}</div>
-        <div class="notification-message">${message}</div>
-    `;
-    
-    setTimeout(() => { notificationArea.classList.add('show'); }, 50);
-    
-    setTimeout(() => {
-        notificationArea.classList.remove('show');
-        notificationArea.classList.add('hide');
-    }, 3000);
-}
-
-// Переменные для 3D наклона
-let tiltEffectListener = null;
-let mouseLeaveListener = null;
-
-// Функция для легкого 3D наклона
-function initTiltEffect() {
-    if (tiltEffectListener) { document.removeEventListener('mousemove', tiltEffectListener); }
-    if (mouseLeaveListener) { document.removeEventListener('mouseleave', mouseLeaveListener); }
-    
-    bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    header.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    bubaImage.style.transform = 'translateX(0px) translateY(0px)';
-    
-    if (settings.tilt3D && settings.deviceType === 'desktop') { // 3D только для десктопа
-        if (tiltInstruction) tiltInstruction.style.display = 'block';
-
-        tiltEffectListener = (e) => {
-            const { clientX: x, clientY: y } = e;
-            const { innerWidth: width, innerHeight: height } = window;
-            
-            const xPos = (x / width - 0.5) * 2;
-            const yPos = (y / height - 0.5) * 2;
-            
-            const bubaRotateY = xPos * 2;
-            const bubaRotateX = -yPos * 2;
-            bubaContainer.style.transform = `rotateY(${bubaRotateY}deg) rotateX(${bubaRotateX}deg)`;
-            
-            const elementRotateY = xPos * 0.5;
-            const elementRotateX = -yPos * 0.5;
-            header.style.transform = `rotateY(${elementRotateY}deg) rotateX(${elementRotateX}deg)`;
-            stats.style.transform = `rotateY(${elementRotateY}deg) rotateX(${elementRotateX}deg)`;
-            
-            const imageMoveX = xPos * 3;
-            const imageMoveY = yPos * 3;
-            bubaImage.style.transform = `translateX(${imageMoveX}px) translateY(${imageMoveY}px)`;
-        };
-
-        mouseLeaveListener = () => {
-            bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            header.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            bubaImage.style.transform = 'translateX(0px) translateY(0px)';
-        };
-
-        document.addEventListener('mousemove', tiltEffectListener);
-        document.addEventListener('mouseleave', mouseLeaveListener);
-    } else {
-        if (tiltInstruction) tiltInstruction.style.display = 'none';
+    100% {
+        transform: translateY(-50px);
+        opacity: 0;
     }
 }
 
-// --- НОВАЯ ФУНКЦИЯ: Установка прослушивателей кликов/тапов ---
-function setupClickListeners() {
-    // 1. Очистка старого прослушивателя
-    if (currentClickListener && currentListenerType) {
-        clickArea.removeEventListener(currentListenerType, currentClickListener);
-    }
-    
-    // 2. Определение нового прослушивателя и типа
-    if (settings.deviceType === 'mobile') {
-        // На мобильном используем touchend для моментального действия (без задержки клика)
-        currentListenerType = 'touchend';
-        currentClickListener = handleClick; 
-    } else {
-        // На компьютере используем стандартный click
-        currentListenerType = 'click';
-        currentClickListener = handleClick;
-    }
-    
-    // 3. Добавление нового прослушивателя
-    clickArea.addEventListener(currentListenerType, currentClickListener);
+/* --- Стили для навигационного меню --- */
+.navigation-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-// --- ФУНКЦИИ ДЛЯ ВЫБОРА УСТРОЙСТВА ---
-function applyDeviceSettings(deviceType) {
-    settings.deviceType = deviceType;
-    document.body.classList.remove('mobile-mode', 'desktop-mode');
-    
-    if (deviceType === 'mobile') {
-        document.body.classList.add('mobile-mode');
-        settings.tilt3D = false; // Отключаем 3D на мобильном
-    } else {
-        // Десктоп по умолчанию без специального класса
-    }
-    
-    updateToggleDisplays();
-    setupClickListeners(); // ДОБАВЛЕНО: Устанавливаем корректный прослушиватель клика
-    saveProgress();
+.menu-button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-function handleDeviceSelection(deviceType) {
-    applyDeviceSettings(deviceType);
-    deviceSelectModal.classList.remove('active'); 
-    
-    const message = deviceType === 'mobile' ? 'Режим "Телефон" активирован. Интерфейс вертикальный.' : 'Режим "Компьютер" активирован. Включены все визуальные эффекты.';
-    showNotification(`Выбрано: ${deviceType === 'mobile' ? 'Телефон' : 'Компьютер'}`, message);
+.menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #fdbb2d;
 }
 
-window.showDeviceSelectionModal = function() {
-    deviceSelectModal.classList.add('active');
-    showNotification('Смена устройства', 'Выберите ваше текущее устройство.');
-}
-// ------------------------------------
-
-// Обновление состояния переключателей и дисплея устройства
-function updateToggleDisplays() {
-    toggle3D.checked = settings.tilt3D;
-    toggleEffects.checked = settings.clickEffects;
-    toggleSounds.checked = settings.sounds;
-    
-    const deviceName = settings.deviceType === 'mobile' ? 'Телефон 📱' : (settings.deviceType === 'desktop' ? 'Компьютер 💻' : 'Не определен');
-    deviceTypeDisplay.textContent = deviceName;
-
-    if (settings.deviceType === 'mobile') {
-        toggle3D.disabled = true; // Запрещаем 3D на мобильном
-    } else {
-        toggle3D.disabled = false;
-    }
-
-    toggleMusic(settings.sounds); 
-    initTiltEffect();
+.menu-button.active {
+    background-color: #fdbb2d; /* Золотистый/желтый */
+    color: #333;
+    border-color: gold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
 }
 
-// Функция для обработки ошибки загрузки изображения
-function handleImageError() {
-    const bubaContent = document.querySelector('.buba-content');
-    bubaContent.innerHTML = `
-        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 15px;">
-            <div style="font-size: 5rem;">😊</div>
-            <div style="margin-top: 10px; font-weight: bold; color: #333; font-size: 2rem;">БУБА</div>
-            <div style="position: absolute; bottom: 20px; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 15px; border-radius: 0 0 15px 15px;">
-                <div style="font-weight: bold; color: #FFD700; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">КЛИКАЙ НА МЕНЯ!</div>
-            </div>
-        </div>
-    `;
+/* Разделы */
+.section {
+    margin-top: 40px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    text-align: left;
 }
 
-// Функция клика
-function handleClick(event) {
-    // ВАЖНО: Проверяем, что это не сработавший tap, если у нас уже был клик.
-    // На мобильных устройствах, если мы слушаем 'touchend', этот код выполнится
+/* Скрытие неактивных разделов */
+.section:not(.active) {
+    display: none;
+}
+
+.section h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #FFD700;
+    font-size: 2rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+}
+
+/* --- Раздел улучшений --- */
+.upgrades-section .upgrades {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.upgrade {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.upgrade:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: gold;
+    transform: translateY(-3px);
+}
+
+/* ДОБАВЛЕНО: СТИЛЬ ДЛЯ ПОКУПАЕМОГО УЛУЧШЕНИЯ (чтобы светилось) */
+.upgrade.can-buy {
+    border-color: #4CAF50; /* Зеленый цвет рамки */
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); /* Эффект свечения */
+    background: rgba(76, 175, 80, 0.15);
+}
+.upgrade.can-buy:hover {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 1);
+    background: rgba(76, 175, 80, 0.25);
+}
+
+.upgrade.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: transparent;
+    box-shadow: none; /* Убираем свечение, если нельзя купить */
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.upgrade.disabled:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: none;
+}
+
+.upgrade-icon {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+}
+
+.upgrade-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 5px;
+}
+
+.upgrade-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.upgrade-cost, .upgrade-level {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.upgrade-cost span {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+/* --- Раздел достижений (без изменений) --- */
+.achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.achievement {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    border-left: 5px solid gray;
+    transition: all 0.3s ease;
+}
+
+.achievement.unlocked {
+    background: rgba(76, 175, 80, 0.2);
+    border-left-color: #4CAF50; /* Зеленый */
+}
+
+.achievement-icon {
+    font-size: 1.8rem;
+    margin-right: 15px;
+}
+
+.achievement-name {
+    font-weight: bold;
+    flex-grow: 1;
+}
+
+.achievement-progress {
+    font-size: 0.9rem;
+    color: #bbb;
+    margin-left: 10px;
+}
+
+.achievement.unlocked .achievement-progress {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+.achievement-reward {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-left: 10px;
+}
+
+/* --- Раздел настроек (изменения только в save-section) --- */
+.settings {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.setting-group {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.setting-group h3 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.save-section button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    color: white;
+}
+
+/* УДАЛЕНЫ СТИЛИ ДЛЯ #save-button И #load-button */
+
+#reset-button {
+    background-color: #f44336; /* Красный */
+}
+
+.save-section button:hover {
+    transform: translateY(-2px);
+}
+
+/* Стили для переключателей (Toggle Switch) */
+.toggle-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    width: 100%;
+    padding: 5px 0;
+}
+
+.toggle input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background-color: #ccc;
+    border-radius: 26px;
+    transition: background-color 0.4s;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.toggle-slider:before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.4s;
+}
+
+.toggle input:checked + .toggle-slider {
+    background-color: #4CAF50;
+}
+
+.toggle input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-text {
+    font-size: 1rem;
+    flex-grow: 1;
+    text-align: left;
+}
+
+.game-info {
+    text-align: center;
+}
+
+.game-info p {
+    margin: 5px 0;
+}
+
+.game-info span {
+    font-weight: bold;
+    color: #FFD700;
+}
+
+/* Стили для уведомлений */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #FFD700;
+    padding: 15px 25px;
+    border-radius: 10px;
+    border-left: 5px solid gold;
+    transform: translateX(400px);
+    transition: transform 0.5s ease;
+    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    max-width: 300px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.hide {
+    transform: translateX(400px);
+}
+
+.notification-title {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    color: #FFD700;
+}
+
+.notification-message {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* --- ДОБАВЛЕНО: Стили для МОДАЛЬНОГО ОКНА ВЫБОРА УСТРОЙСТВА --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #1e3c72; 
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    max-width: 90%;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+
+/* --- ДОБАВЛЕНО: Стили для МОБИЛЬНОГО РЕЖИМА (Вертикальный интерфейс) --- */
+.mobile-mode body {
+    padding: 0; 
+}
+
+.mobile-mode .container {
+    max-width: 100%;
+    width: 100%;
+    height: 100vh; 
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: hidden; 
+}
+
+.mobile-mode header {
+    margin-bottom: 10px;
+    padding: 10px;
+    flex-shrink: 0; 
+}
+
+.mobile-mode h1 {
+    font-size: 2rem;
+}
+
+.mobile-mode .stats {
+    flex-direction: column; 
+    gap: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.mobile-mode .stat-item {
+    width: 100%;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.mobile-mode .stat-value {
+    font-size: 1.5rem;
+}
+
+.mobile-mode .click-area {
+    flex-grow: 1; 
+    padding: 5px;
+    margin-bottom: 5px;
+    min-height: 250px; 
+}
+
+.mobile-mode .buba-container {
+    width: 250px;
+    height: 250px;
+    touch-action: manipulation;
+}
+
+.mobile-mode .instructions {
+    margin: 10px 0;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.mobile-mode #tilt-instruction {
+    display: none !important; 
+}
+
+.mobile-mode .navigation-menu {
+    position: relative; 
+    width: 100%;
+    max-width: none;
+    margin: 0 0 10px 0; 
+    border-radius: 10px;
+    padding: 10px 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    flex-shrink: 0;
+    flex-direction: row; 
+}
+
+.mobile-mode .menu-button {
+    font-size: 0.8rem;
+    padding: 10px 5px;
+}
+
+.mobile-mode .section {
+    flex-grow: 1;
+    overflow-y: auto; 
+    padding: 10px;
+    margin-top: 0;
+    margin-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 1; 
+}
+
+.mobile-mode .section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.mobile-mode .upgrades-section .upgrades {
+    grid-template-columns: 1fr; /* Улучшения в один столбец */
+    gap: 10px;
+}
+
+.mobile-mode .upgrade {
+    padding: 10px;
+    text-align: left;
+    display: grid;
+    grid-template-columns: 40px 1fr auto; /* Иконка, Имя, Стоимость/Уровень */
+    gap: 10px;
+    align-items: center;
+}
+
+.mobile-mode .upgrade-icon {
+    grid-column: 1 / 2;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+.mobile-mode .upgrade-name {
+    grid-column: 2 / 3;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.mobile-mode .upgrade-description {
+    display: none; /* Скрываем на мобильном для компактности */
+}
+
+.mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
+    grid-column: 3 / 4;
+    font-size: 0.9rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.mobile-mode .achievement {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+}
+
+.mobile-mode .save-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
