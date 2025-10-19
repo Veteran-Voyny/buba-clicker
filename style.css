@@ -96,8 +96,9 @@ h1 {
 }
 
 .buba-image {
-    width: 90%;
-    height: 90%;
+    /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Уменьшаем размер до 80%, чтобы дать "воздуха" по краям */
+    width: 80%; 
+    height: 80%;
     border-radius: 50%;
     object-fit: cover;
     pointer-events: none; 
@@ -219,13 +220,13 @@ h1 {
 /* --- КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНОГО РЕЖИМА (Телефон) --- */
 .mobile-mode body {
     padding: 0; 
-    height: 100vh; /* Убеждаемся, что body занимает всю высоту экрана */
+    height: 100vh; 
 }
 
 .mobile-mode .container {
     max-width: 100%;
     width: 100%;
-    height: 100%; /* Занимает всю высоту body */
+    height: 100%; 
     display: flex;
     flex-direction: column; 
     padding: 10px;
@@ -236,7 +237,7 @@ h1 {
 .mobile-mode .stats,
 .mobile-mode .click-area,
 .mobile-mode .navigation-menu {
-    flex-shrink: 0; /* Эти элементы не должны сжиматься */
+    flex-shrink: 0; 
     margin-bottom: 10px;
 }
 
@@ -256,25 +257,23 @@ h1 {
 
 /* НОВЫЙ СТИЛЬ: Обертка для секций */
 .mobile-mode .sections-wrapper {
-    /* КРИТИЧЕСКИ ВАЖНО: Занять все оставшееся место */
     flex: 1 1 0%; 
     width: 100%;
     overflow: hidden; 
-    position: relative; /* База для абсолютного позиционирования секций */
+    position: relative; 
 }
 
 /* ИЗМЕНЕННЫЙ СТИЛЬ: Сами секции */
 .mobile-mode .section {
-    position: absolute; /* Позволяет секциям перекрывать друг друга */
+    position: absolute; 
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%; /* Секция занимает всю обертку */
+    height: 100%; 
     background: rgba(0, 0, 0, 0.4);
     padding: 15px;
     margin: 0;
     -webkit-overflow-scrolling: touch;
-    /* КРИТИЧЕСКИ ВАЖНО: прокручиваем содержимое самой секции */
     overflow-y: auto; 
     border-radius: 10px;
     z-index: 1; 
