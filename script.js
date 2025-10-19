@@ -179,6 +179,13 @@ function initTiltEffect() {
             bubaImage.style.transform = `translateX(${imageMoveX}px) translateY(${imageMoveY}px)`;
         };
 
+        mouseLeaveListener = () => {
+            bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            header.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            bubaImage.style.transform = 'translateX(0px) translateY(0px)';
+        };
+
         document.addEventListener('mousemove', tiltEffectListener);
         document.addEventListener('mouseleave', mouseLeaveListener);
     } else {
@@ -256,7 +263,7 @@ function handleClick(event) {
     updateDisplay();
     
     if (settings.clickEffects) {
-        // Для мобильного тача event.clientX/Y может быть в event.touches[0]
+        // --- ИСПРАВЛЕНИЕ: Универсальное определение координат ---
         let clientX = event.clientX;
         let clientY = event.clientY;
         if (event.touches && event.touches.length > 0) {
@@ -486,67 +493,94 @@ function gameTimerTick() {
     playTimeDisplay.textContent = gameTimeSeconds;
 }
 
+// --- ФУНКЦИИ ДЛЯ ОБРАБОТКИ МЕНЮ (чтобы избежать дублирования кода) ---
+const handleMenuClick = (sectionId) => (e) => {
+    // В APK/мобильном режиме используем touchstart, чтобы предотвратить скролл и задержку
+    if (e.type === 'touchstart') {
+        e.preventDefault();
+        showSection(sectionId);
+    } 
+    // На ПК/Десктопе используем обычный click
+    if (e.type === 'click') {
+        showSection(sectionId);
+    }
+};
+
 // --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
 function initGame() {
     
     bubaImage.onerror = handleImageError;
     
-    // Инициализация улучшений (с обновленной функцией updateDisplay)
+    // Инициализация улучшений
     upgrades.forEach(upgrade => {
         const element = document.getElementById(`upgrade-${upgrade.id}`);
         const costElement = document.getElementById(`cost-${upgrade.id}`);
         const levelElement = document.getElementById(`level-${upgrade.id}`);
         
+        // Обработчики улучшения (только click, так как это не fullscreen элемент)
         element.addEventListener('click', function() {
             buyUpgrade(upgrade.id);
         });
         
-        // ОБНОВЛЕНО: ФУНКЦИЯ ДЛЯ ПОДСВЕТКИ УЛУЧШЕНИЙ
         upgrade.updateDisplay = function() {
             costElement.textContent = Math.floor(this.cost);
             levelElement.textContent = this.level;
             
             if (score >= this.cost) {
-                element.classList.add('can-buy'); // Подсветка включена
+                element.classList.add('can-buy');
                 element.classList.remove('disabled');
             } else {
-                element.classList.remove('can-buy'); // Подсветка выключена
+                element.classList.remove('can-buy');
                 element.classList.add('disabled');
             }
         };
     });
     
-    // Обработчики для кнопок меню
-    document.getElementById('menu-upgrades').addEventListener('click', () => {
-        showSection('upgrades-section');
-    });
-    document.getElementById('menu-achievements').addEventListener('click', () => {
-        showSection('achievements-section');
-    });
-    document.getElementById('menu-settings').addEventListener('click', () => {
-        showSection('settings-section');
-    });
+    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики для кнопок меню (Табы) ---
+    const menuUpgrades = document.getElementById('menu-upgrades');
+    const menuAchievements = document.getElementById('menu-achievements');
+    const menuSettings = document.getElementById('menu-settings');
 
-    // --- НАДЕЖНЫЕ ОБРАБОТЧИКИ КЛИКОВ НА БУБЕ ---
+    menuUpgrades.addEventListener('click', handleMenuClick('upgrades-section'));
+    menuUpgrades.addEventListener('touchstart', handleMenuClick('upgrades-section'));
+
+    menuAchievements.addEventListener('click', handleMenuClick('achievements-section'));
+    menuAchievements.addEventListener('touchstart', handleMenuClick('achievements-section'));
+
+    menuSettings.addEventListener('click', handleMenuClick('settings-section'));
+    menuSettings.addEventListener('touchstart', handleMenuClick('settings-section'));
+
+    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики кликов на Бубе ---
     
-    // Начисление очков по клику для ПК
-    clickArea.addEventListener('click', handleClick); 
+    // Начисление очков по клику для ПК/Десктопа
+    clickArea.addEventListener('click', (e) => {
+        if (settings.deviceType !== 'mobile') {
+            handleClick(e);
+        }
+    }); 
     
-    // Начисление очков по тапу для мобильных (Самое надежное событие)
+    // Начисление очков по тапу для мобильных/APK (Самое надежное событие)
     clickArea.addEventListener('touchstart', (e) => { 
         e.preventDefault(); // Ключевой момент: блокируем скролл/зум
         handleClick(e); // Начисляем очки
     }); 
 
-    // Анимация нажатия/отпускания (Универсально)
+    // Обработчики для анимации нажатия/отпускания
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
+    clickArea.addEventListener('touchstart', (e) => { buba.style.transform = 'scale(0.95)'});
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
     
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ КЛИКОВ НА БУБЕ ---
+    // Обработчики кнопок сохранения/сброса
+    document.getElementById('save-button').addEventListener('click', function() {
+        saveProgress();
+        showNotification('Сохранение', 'Прогресс успешно сохранен!');
+    });
     
+    document.getElementById('load-button').addEventListener('click', function() {
+        loadProgress();
+    });
     
-    // Обработчик кнопки сброса
     document.getElementById('reset-button').addEventListener('click', function() {
         resetGame();
     });
@@ -571,43 +605,15 @@ function initGame() {
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
     
-    // --- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ОБРАБОТЧИКИ МОДАЛЬНОГО ОКНА ---
-    const handleMobileSelect = (e) => {
-        e.preventDefault(); // ПРЕДОТВРАЩАЕТ СБОЙ ТАПА НА МОБИЛЬНЫХ
-        handleDeviceSelection('mobile');
-    };
-    const handleDesktopSelect = (e) => {
-        e.preventDefault(); // ПРЕДОТВРАЩАЕТ СБОЙ ТАПА НА МОБИЛЬНЫХ
-        handleDeviceSelection('desktop');
+    // --- ИСПРАВЛЕНИЕ ТАПОВ: Обработчики для модального окна ---
+    const handleDeviceSelect = (deviceType) => (e) => {
+        e.preventDefault(); // Ключевой момент: предотвращает сбой тапа
+        handleDeviceSelection(deviceType);
     };
 
-    selectMobileButton.addEventListener('click', handleMobileSelect);
-    selectMobileButton.addEventListener('touchstart', handleMobileSelect);
+    selectMobileButton.addEventListener('click', handleDeviceSelect('mobile'));
+    selectMobileButton.addEventListener('touchstart', handleDeviceSelect('mobile'));
     
-    selectDesktopButton.addEventListener('click', handleDesktopSelect);
-    selectDesktopButton.addEventListener('touchstart', handleDesktopSelect);
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО ОКНА ---
-
-    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ --
-    window.addEventListener('beforeunload', saveProgress);
-    window.addEventListener('pagehide', saveProgress); 
-
-    loadProgress(); 
-    
-    if (!settings.deviceType) {
-        deviceSelectModal.classList.add('active'); // Показываем выбор устройства
-        showNotification('ОБРАТИТЕ ВНИМАНИЕ', 'Нажмите "Телефон 📱" или "Компьютер 💻" в центре экрана, чтобы разблокировать игру!');
-    } else {
-        applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
-    }
-    
-    showSection('upgrades-section');
-    
-    // Запускаем таймеры
-    setInterval(saveProgress, 30000); 
-    setInterval(passiveIncomeTick, 1000); 
-    setInterval(gameTimerTick, 1000); 
-}
-
-// Запуск игры при загрузке страницы
-document.addEventListener('DOMContentLoaded', initGame);
+    selectDesktopButton.addEventListener('click', handleDeviceSelect('desktop'));
+    selectDesktopButton.addEventListener('touchstart', handleDeviceSelect('desktop'));
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ МОДАЛЬНОГО
