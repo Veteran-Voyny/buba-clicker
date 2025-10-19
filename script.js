@@ -157,7 +157,7 @@ function initTiltEffect() {
     stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
     bubaImage.style.transform = 'translateX(0px) translateY(0px)';
     
-    if (settings.tilt3D && settings.deviceType === 'desktop') { // 3D только для десктопа
+    if (settings.tilt3D && settings.deviceType === 'desktop') { 
         if (tiltInstruction) tiltInstruction.style.display = 'block';
 
         tiltEffectListener = (e) => {
@@ -202,7 +202,7 @@ function applyDeviceSettings(deviceType) {
     
     if (deviceType === 'mobile') {
         document.body.classList.add('mobile-mode');
-        settings.tilt3D = false; // Отключаем 3D на мобильном
+        settings.tilt3D = false; 
     } else {
         document.body.classList.add('desktop-mode');
         settings.tilt3D = true;
@@ -214,7 +214,7 @@ function applyDeviceSettings(deviceType) {
 
 function handleDeviceSelection(deviceType) {
     applyDeviceSettings(deviceType);
-    deviceSelectModal.classList.remove('active'); 
+    deviceSelectModal.classList.remove('active'); // КРИТИЧЕСКИ ВАЖНО: Скрываем модальное окно!
     
     const message = deviceType === 'mobile' ? 'Режим "Телефон" активирован. Интерфейс вертикальный.' : 'Режим "Компьютер" активирован. Включены все визуальные эффекты.';
     showNotification(`Выбрано: ${deviceType === 'mobile' ? 'Телефон' : 'Компьютер'}`, message);
@@ -236,7 +236,7 @@ function updateToggleDisplays() {
     deviceTypeDisplay.textContent = deviceName;
 
     if (settings.deviceType === 'mobile') {
-        toggle3D.disabled = true; // Запрещаем 3D на мобильном
+        toggle3D.disabled = true; 
     } else {
         toggle3D.disabled = false;
     }
@@ -505,12 +505,10 @@ function gameTimerTick() {
 
 // --- ФУНКЦИИ ДЛЯ ОБРАБОТКИ МЕНЮ (для тапов и кликов) ---
 const handleMenuAction = (sectionId) => (e) => {
-    // Если это touch event, предотвращаем скролл/задержку
     if (e.type === 'touchstart') {
         e.preventDefault();
         showSection(sectionId);
     } 
-    // Обрабатываем click (для ПК и в качестве запасного варианта)
     if (e.type === 'click') {
         showSection(sectionId);
     }
@@ -528,7 +526,6 @@ function initGame() {
         const levelElement = document.getElementById(`level-${upgrade.id}`);
         
         if (element) {
-            // Обработчик покупки улучшения
             element.addEventListener('click', function() {
                 buyUpgrade(upgrade.id);
             });
@@ -556,18 +553,15 @@ function initGame() {
     [menuUpgrades, menuAchievements, menuSettings].forEach(button => {
         if (button) {
             const sectionId = button.id.replace('menu-', '') + '-section';
-            // Обрабатываем tap (touchstart) для мобильных
             button.addEventListener('touchstart', handleMenuAction(sectionId));
-            // Обрабатываем click для ПК
             button.addEventListener('click', handleMenuAction(sectionId));
         }
     });
 
-    // --- ИСПРАВЛЕНИЕ: Обработчики кликов/тапов на Бубе ---
+    // --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Обработчики кликов/тапов на Бубе ---
     
     // Начисление очков по клику для ПК/Десктопа
     clickArea.addEventListener('click', (e) => {
-        // Проверяем, что это не мобильный режим (чтобы избежать двойных кликов)
         if (settings.deviceType !== 'mobile') {
             handleClick(e);
         }
@@ -575,18 +569,18 @@ function initGame() {
     
     // Начисление очков по тапу для мобильных/APK (Самое надежное событие)
     clickArea.addEventListener('touchstart', (e) => { 
-        e.preventDefault(); // Ключевой момент: блокируем скролл/зум
-        handleClick(e); // Начисляем очки
-    }, { passive: false }); // {passive: false} гарантирует, что preventDefault сработает
+        e.preventDefault(); // БЛОКИРУЕМ СКРОЛЛ/ЗУМ ДЛЯ КОРРЕКТНОЙ РЕГИСТРАЦИИ ТАПА
+        handleClick(e); 
+    }, { passive: false }); 
 
     // Обработчики для анимации нажатия/отпускания
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); // Сброс анимации при уходе курсора
+    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); 
     clickArea.addEventListener('touchstart', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)'); 
     
-    // Обработчики кнопок сохранения/сброса (используем только click, так как это внутри прокручиваемой секции)
+    // Обработчики кнопок сохранения/сброса
     document.getElementById('save-button').addEventListener('click', function() {
         saveProgress();
         showNotification('Сохранение', 'Прогресс успешно сохранен!');
@@ -640,9 +634,9 @@ function initGame() {
     loadProgress(); 
     
     if (!settings.deviceType) {
-        deviceSelectModal.classList.add('active'); // Показываем выбор устройства
+        deviceSelectModal.classList.add('active'); // Показываем выбор устройства, если не выбран
     } else {
-        applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
+        applyDeviceSettings(settings.deviceType); 
     }
     
     showSection('upgrades-section');
