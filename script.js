@@ -45,31 +45,19 @@ const clickValueElement = document.getElementById('click-value');
 const passiveIncomeElement = document.getElementById('passive-income');
 const clickArea = document.getElementById('click-area');
 const buba = document.querySelector('.buba');
-const bubaImage = document.getElementById('buba-image');
 const totalClicksDisplay = document.getElementById('total-clicks-display');
 const playTimeDisplay = document.getElementById('play-time');
 const toggleEffects = document.getElementById('toggle-effects');
 const toggleSounds = document.getElementById('toggle-sounds');
 const gameMusic = document.getElementById('game-music');
-const promocodeInput = document.getElementById('promocode-input');
-const activatePromocodeButton = document.getElementById('activate-promocode');
-
-// Элементы для меню
-const upgradesSection = document.getElementById('upgrades-section');
-const achievementsSection = document.getElementById('achievements-section');
-const promocodesSection = document.getElementById('promocodes-section');
-const settingsSection = document.getElementById('settings-section');
 
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
 function toggleMusic(play) {
     if (play) {
         gameMusic.volume = 0.3;
-        const playPromise = gameMusic.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("Автовоспроизведение музыки заблокировано");
-            });
-        }
+        gameMusic.play().catch(() => {
+            console.log("Автовоспроизведение музыки заблокировано");
+        });
         musicPlayed = true;
     } else {
         gameMusic.pause();
@@ -80,23 +68,18 @@ function toggleMusic(play) {
 
 // --- ФУНКЦИЯ: Переключение разделов ---
 function showSection(sectionId) {
-    console.log("Переключаем на раздел:", sectionId);
-    
-    const sections = [upgradesSection, achievementsSection, promocodesSection, settingsSection];
-    const targetSection = document.getElementById(sectionId);
-
     // Скрываем все разделы
-    sections.forEach(section => {
+    document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
     
     // Убираем активный класс со всех кнопок
-    const menuButtons = document.querySelectorAll('.menu-button');
-    menuButtons.forEach(button => {
+    document.querySelectorAll('.menu-button').forEach(button => {
         button.classList.remove('active');
     });
 
     // Показываем целевой раздел
+    const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
         
@@ -105,8 +88,6 @@ function showSection(sectionId) {
         if (menuButton) {
             menuButton.classList.add('active');
         }
-        
-        console.log("Раздел активирован:", sectionId);
     }
 }
 
@@ -133,16 +114,12 @@ function showNotification(title, message) {
     if (!notificationArea) return;
     
     notificationArea.classList.remove('show', 'hide');
-    
-    notificationArea.innerHTML = '';
-    
     notificationArea.innerHTML = `
         <div class="notification-title">${title}</div>
         <div class="notification-message">${message}</div>
     `;
     
-    setTimeout(() => { notificationArea.classList.add('show'); }, 50);
-    
+    setTimeout(() => notificationArea.classList.add('show'), 50);
     setTimeout(() => {
         notificationArea.classList.remove('show');
         notificationArea.classList.add('hide');
@@ -209,7 +186,7 @@ function createClickEffect(x, y, text) {
     
     document.body.appendChild(effect);
     
-    setTimeout(() => { effect.remove(); }, 1000);
+    setTimeout(() => effect.remove(), 1000);
 }
 
 // Покупка улучшения
@@ -218,13 +195,10 @@ function buyUpgrade(upgradeId) {
     
     if (score >= upgrade.cost) {
         score -= upgrade.cost;
-        
         upgrade.level++;
-        
         upgrade.cost = upgrade.baseCost * Math.pow(1.5, upgrade.level);
         
         recalculateAllStats(); 
-        
         upgrade.updateDisplay();
         showNotification('Улучшение куплено!', `"${upgrade.name}" успешно приобретено!`);
     } else {
@@ -234,6 +208,7 @@ function buyUpgrade(upgradeId) {
 
 // Активация промокода
 function activatePromocode() {
+    const promocodeInput = document.getElementById('promocode-input');
     const code = promocodeInput.value.trim().toUpperCase();
     
     if (!code) {
@@ -258,7 +233,6 @@ function activatePromocode() {
             updateDisplay();
             showNotification('Промокод активирован!', `+${reward} очков!`);
             promocodeInput.value = '';
-            
             saveProgress();
         }
     } else {
@@ -381,7 +355,6 @@ function loadProgress() {
                 Object.keys(gameData.promocodes).forEach(code => {
                     if (promocodes[code]) {
                         promocodes[code].used = gameData.promocodes[code];
-                        // Обновляем отображение
                         const promocodeItem = document.querySelector(`[data-code="${code}"]`);
                         if (promocodeItem && gameData.promocodes[code]) {
                             promocodeItem.classList.add('used');
@@ -391,7 +364,6 @@ function loadProgress() {
             }
             
             recalculateAllStats();
-            
             upgrades.forEach(upgrade => upgrade.updateDisplay());
             updateAchievementDisplay();
             
@@ -468,66 +440,60 @@ function gameTimerTick() {
 // --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
 function initGame() {
     
-    bubaImage.onerror = handleImageError;
+    // Обработка ошибки изображения
+    const bubaImage = document.getElementById('buba-image');
+    if (bubaImage) {
+        bubaImage.onerror = handleImageError;
+    }
     
     // Инициализация улучшений
     upgrades.forEach(upgrade => {
         const element = document.getElementById(`upgrade-${upgrade.id}`);
-        
-        element.addEventListener('click', function() {
-            buyUpgrade(upgrade.id);
-        });
-        
-        element.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            buyUpgrade(upgrade.id);
-        });
-        
-        upgrade.updateDisplay = function() {
-            const costElement = document.getElementById(`cost-${this.id}`);
-            const levelElement = document.getElementById(`level-${this.id}`);
+        if (element) {
+            element.addEventListener('click', () => buyUpgrade(upgrade.id));
+            element.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                buyUpgrade(upgrade.id);
+            });
             
-            costElement.textContent = Math.floor(this.cost);
-            levelElement.textContent = this.level;
-            
-            if (score >= this.cost) {
-                element.classList.add('can-buy');
-                element.classList.remove('disabled');
-            } else {
-                element.classList.remove('can-buy');
-                element.classList.add('disabled');
-            }
-        };
+            upgrade.updateDisplay = function() {
+                const costElement = document.getElementById(`cost-${this.id}`);
+                const levelElement = document.getElementById(`level-${this.id}`);
+                
+                if (costElement) costElement.textContent = Math.floor(this.cost);
+                if (levelElement) levelElement.textContent = this.level;
+                
+                if (score >= this.cost) {
+                    element.classList.add('can-buy');
+                    element.classList.remove('disabled');
+                } else {
+                    element.classList.remove('can-buy');
+                    element.classList.add('disabled');
+                }
+            };
+        }
     });
     
     // Обработчики для кнопок меню
-    document.getElementById('menu-upgrades').addEventListener('click', () => {
-        showSection('upgrades-section');
-    });
+    document.getElementById('menu-upgrades').addEventListener('click', () => showSection('upgrades-section'));
     document.getElementById('menu-upgrades').addEventListener('touchend', (e) => {
         e.preventDefault();
         showSection('upgrades-section');
     });
     
-    document.getElementById('menu-achievements').addEventListener('click', () => {
-        showSection('achievements-section');
-    });
+    document.getElementById('menu-achievements').addEventListener('click', () => showSection('achievements-section'));
     document.getElementById('menu-achievements').addEventListener('touchend', (e) => {
         e.preventDefault();
         showSection('achievements-section');
     });
     
-    document.getElementById('menu-promocodes').addEventListener('click', () => {
-        showSection('promocodes-section');
-    });
+    document.getElementById('menu-promocodes').addEventListener('click', () => showSection('promocodes-section'));
     document.getElementById('menu-promocodes').addEventListener('touchend', (e) => {
         e.preventDefault();
         showSection('promocodes-section');
     });
     
-    document.getElementById('menu-settings').addEventListener('click', () => {
-        showSection('settings-section');
-    });
+    document.getElementById('menu-settings').addEventListener('click', () => showSection('settings-section'));
     document.getElementById('menu-settings').addEventListener('touchend', (e) => {
         e.preventDefault();
         showSection('settings-section');
@@ -567,13 +533,13 @@ function initGame() {
     });
 
     // Обработчики для промокодов
-    activatePromocodeButton.addEventListener('click', activatePromocode);
-    activatePromocodeButton.addEventListener('touchend', (e) => {
+    document.getElementById('activate-promocode').addEventListener('click', activatePromocode);
+    document.getElementById('activate-promocode').addEventListener('touchend', (e) => {
         e.preventDefault();
         activatePromocode();
     });
     
-    promocodeInput.addEventListener('keypress', (e) => {
+    document.getElementById('promocode-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             activatePromocode();
         }
