@@ -401,6 +401,7 @@ h1 {
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
     border-radius: 10px;
+    text-align: center;
 }
 
 .promocode-info h3 {
@@ -409,36 +410,10 @@ h1 {
     text-align: center;
 }
 
-.promocode-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    border-left: 4px solid #FFD700;
-}
-
-.promocode-name {
-    font-weight: bold;
-    color: #FFD700;
-    font-size: 1rem;
-}
-
-.promocode-reward {
-    font-weight: bold;
-    color: #4CAF50;
+.promocode-info p {
+    opacity: 0.8;
     font-size: 0.9rem;
-}
-
-.promocode-item.used {
-    opacity: 0.6;
-    border-left-color: #888;
-}
-
-.promocode-item.used .promocode-name {
-    color: #888;
+    margin-top: 8px;
 }
 
 /* --- Раздел настроек --- */
