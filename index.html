@@ -42,6 +42,7 @@
         <div class="navigation-menu">
             <button id="menu-upgrades" class="menu-button active">🛠️ Улучшения</button>
             <button id="menu-achievements" class="menu-button">🏆 Достижения</button>
+            <button id="menu-promocodes" class="menu-button">🎁 Промокоды</button>
             <button id="menu-settings" class="menu-button">⚙️ Настройки</button>
         </div>
 
@@ -112,6 +113,41 @@
             </div>
         </div>
 
+        <div class="section promocodes-section" id="promocodes-section">
+            <h2>🎁 Промокоды</h2>
+            <div class="promocodes-container">
+                <div class="promocode-input-group">
+                    <input type="text" id="promocode-input" placeholder="Введите промокод" maxlength="20">
+                    <button id="activate-promocode" class="promocode-button">Активировать</button>
+                </div>
+                <div class="promocodes-list">
+                    <div class="promocode-info">
+                        <h3>Активные промокоды:</h3>
+                        <div class="promocode-item" data-code="START100">
+                            <span class="promocode-name">START100</span>
+                            <span class="promocode-reward">+100 очков</span>
+                        </div>
+                        <div class="promocode-item" data-code="BOOST500">
+                            <span class="promocode-name">BOOST500</span>
+                            <span class="promocode-reward">+500 очков</span>
+                        </div>
+                        <div class="promocode-item" data-code="GOLD1000">
+                            <span class="promocode-name">GOLD1000</span>
+                            <span class="promocode-reward">+1000 очков</span>
+                        </div>
+                        <div class="promocode-item" data-code="CLICK2000">
+                            <span class="promocode-name">CLICK2000</span>
+                            <span class="promocode-reward">+2000 очков</span>
+                        </div>
+                        <div class="promocode-item" data-code="BUBAMAX">
+                            <span class="promocode-name">BUBAMAX</span>
+                            <span class="promocode-reward">+5000 очков</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="section settings-section" id="settings-section">
             <h2>⚙️ Настройки</h2>
             <div class="settings">
@@ -143,14 +179,17 @@
                     <div class="game-info">
                         <p>Всего кликов: <span id="total-clicks-display">0</span></p>
                         <p>Общее время игры: <span id="play-time">0</span> сек</p>
-                        <p>Версия: 1.0</p>
+                        <p>Версия: 1.1</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <audio id="game-music" src="music.mp3" loop></audio>
+    <audio id="game-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+        <source src="music.ogg" type="audio/ogg">
+    </audio>
     <div class="notification" id="notification-area"></div> 
 
     <script src="script.js"></script>
