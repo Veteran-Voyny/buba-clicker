@@ -136,23 +136,16 @@ h1 {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px 0;
-    border-radius: 0 0 50% 50% / 0 0 40% 40%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-top: 2px solid gold;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 8px 0;
+    border-radius: 0 0 50% 50% / 0 0 30% 30%;
 }
 
 .buba-text {
     font-weight: bold;
     color: #FFD700;
-    font-size: 1.2rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    text-align: center;
-    padding: 5px 10px;
-    font-weight: 900;
+    font-size: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 /* Эффект клика (летающие цифры) */
@@ -607,14 +600,6 @@ h1 {
         height: 150px;
     }
     
-    .buba-overlay {
-        padding: 12px 0;
-    }
-    
-    .buba-text {
-        font-size: 1rem;
-    }
-    
     .stats {
         padding: 8px;
     }
@@ -647,11 +632,6 @@ h1 {
     
     .navigation-menu {
         gap: 2px;
-    }
-    
-    .buba-text {
-        font-size: 0.9rem;
-        padding: 3px 8px;
     }
 }
 
