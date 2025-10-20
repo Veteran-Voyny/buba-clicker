@@ -30,6 +30,15 @@ const achievements = [
     { id: 4, clicks: 500, unlocked: false }
 ];
 
+// Промокоды
+const promocodes = {
+    "START100": { reward: 100, used: false },
+    "BOOST500": { reward: 500, used: false },
+    "GOLD1000": { reward: 1000, used: false },
+    "CLICK2000": { reward: 2000, used: false },
+    "BUBAMAX": { reward: 5000, used: false }
+};
+
 // Элементы DOM
 const scoreElement = document.getElementById('score');
 const clickValueElement = document.getElementById('click-value');
@@ -42,10 +51,13 @@ const playTimeDisplay = document.getElementById('play-time');
 const toggleEffects = document.getElementById('toggle-effects');
 const toggleSounds = document.getElementById('toggle-sounds');
 const gameMusic = document.getElementById('game-music');
+const promocodeInput = document.getElementById('promocode-input');
+const activatePromocodeButton = document.getElementById('activate-promocode');
 
 // Элементы для меню
 const upgradesSection = document.getElementById('upgrades-section');
 const achievementsSection = document.getElementById('achievements-section');
+const promocodesSection = document.getElementById('promocodes-section');
 const settingsSection = document.getElementById('settings-section');
 const menuButtons = document.querySelectorAll('.menu-button');
 
@@ -53,9 +65,12 @@ const menuButtons = document.querySelectorAll('.menu-button');
 function toggleMusic(play) {
     if (play) {
         gameMusic.volume = 0.3;
-        gameMusic.play().catch(error => {
-            console.log("Музыка заблокирована браузером.");
-        });
+        const playPromise = gameMusic.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Автовоспроизведение музыки заблокировано");
+            });
+        }
         musicPlayed = true;
     } else {
         gameMusic.pause();
@@ -66,7 +81,7 @@ function toggleMusic(play) {
 
 // --- ФУНКЦИЯ: Переключение разделов ---
 function showSection(sectionId) {
-    const sections = [upgradesSection, achievementsSection, settingsSection];
+    const sections = [upgradesSection, achievementsSection, promocodesSection, settingsSection];
     const targetSection = document.getElementById(sectionId);
 
     // Скрываем все разделы
@@ -213,6 +228,40 @@ function buyUpgrade(upgradeId) {
     }
 }
 
+// Активация промокода
+function activatePromocode() {
+    const code = promocodeInput.value.trim().toUpperCase();
+    
+    if (!code) {
+        showNotification('Ошибка', 'Введите промокод');
+        return;
+    }
+    
+    if (promocodes[code]) {
+        if (promocodes[code].used) {
+            showNotification('Промокод уже использован', 'Этот промокод уже был активирован');
+        } else {
+            const reward = promocodes[code].reward;
+            score += reward;
+            promocodes[code].used = true;
+            
+            // Обновляем отображение промокода
+            const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+            if (promocodeItem) {
+                promocodeItem.classList.add('used');
+            }
+            
+            updateDisplay();
+            showNotification('Промокод активирован!', `+${reward} очков!`);
+            promocodeInput.value = '';
+            
+            saveProgress();
+        }
+    } else {
+        showNotification('Неверный промокод', 'Проверьте правильность ввода');
+    }
+}
+
 // Обновление прогресса достижений в DOM
 function updateAchievementDisplay() {
     achievements.forEach(achievement => {
@@ -278,7 +327,11 @@ function saveProgress() {
         achievements: achievements.map(achievement => ({
             id: achievement.id,
             unlocked: achievement.unlocked
-        }))
+        })),
+        promocodes: Object.keys(promocodes).reduce((acc, code) => {
+            acc[code] = promocodes[code].used;
+            return acc;
+        }, {})
     };
     
     localStorage.setItem('bubaClickerSave', JSON.stringify(gameData));
@@ -315,6 +368,20 @@ function loadProgress() {
                     const achievement = achievements.find(a => a.id === savedAchievement.id);
                     if (achievement) {
                         achievement.unlocked = savedAchievement.unlocked || false;
+                    }
+                });
+            }
+            
+            // Загружаем использованные промокоды
+            if (gameData.promocodes) {
+                Object.keys(gameData.promocodes).forEach(code => {
+                    if (promocodes[code]) {
+                        promocodes[code].used = gameData.promocodes[code];
+                        // Обновляем отображение
+                        const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+                        if (promocodeItem && gameData.promocodes[code]) {
+                            promocodeItem.classList.add('used');
+                        }
                     }
                 });
             }
@@ -356,6 +423,15 @@ function resetGame() {
         
         achievements.forEach(achievement => {
             achievement.unlocked = false;
+        });
+        
+        // Сбрасываем промокоды
+        Object.keys(promocodes).forEach(code => {
+            promocodes[code].used = false;
+            const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+            if (promocodeItem) {
+                promocodeItem.classList.remove('used');
+            }
         });
         
         recalculateAllStats();
@@ -437,6 +513,14 @@ function initGame() {
         showSection('achievements-section');
     });
     
+    document.getElementById('menu-promocodes').addEventListener('click', () => {
+        showSection('promocodes-section');
+    });
+    document.getElementById('menu-promocodes').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('promocodes-section');
+    });
+    
     document.getElementById('menu-settings').addEventListener('click', () => {
         showSection('settings-section');
     });
@@ -476,6 +560,19 @@ function initGame() {
         toggleMusic(this.checked);
         saveProgress();
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
+    });
+
+    // Обработчики для промокодов
+    activatePromocodeButton.addEventListener('click', activatePromocode);
+    activatePromocodeButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        activatePromocode();
+    });
+    
+    promocodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            activatePromocode();
+        }
     });
 
     // Автосохранение
