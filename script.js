@@ -7,10 +7,8 @@ let gameTimeSeconds = 0;
 
 // Настройки
 let settings = {
-    tilt3D: true,
     clickEffects: true,
-    sounds: true, 
-    deviceType: null
+    sounds: true
 };
 
 // Переменная состояния музыки
@@ -37,18 +35,13 @@ const scoreElement = document.getElementById('score');
 const clickValueElement = document.getElementById('click-value');
 const passiveIncomeElement = document.getElementById('passive-income');
 const clickArea = document.getElementById('click-area');
-const bubaContainer = document.getElementById('buba-container');
-const buba = document.getElementById('buba');
+const buba = document.querySelector('.buba');
 const bubaImage = document.getElementById('buba-image');
-const header = document.getElementById('header');
-const stats = document.getElementById('stats');
 const totalClicksDisplay = document.getElementById('total-clicks-display');
 const playTimeDisplay = document.getElementById('play-time');
-const toggle3D = document.getElementById('toggle-3d');
 const toggleEffects = document.getElementById('toggle-effects');
 const toggleSounds = document.getElementById('toggle-sounds');
-const gameMusic = document.getElementById('game-music'); 
-const tiltInstruction = document.getElementById('tilt-instruction'); 
+const gameMusic = document.getElementById('game-music');
 
 // Элементы для меню
 const upgradesSection = document.getElementById('upgrades-section');
@@ -56,25 +49,14 @@ const achievementsSection = document.getElementById('achievements-section');
 const settingsSection = document.getElementById('settings-section');
 const menuButtons = document.querySelectorAll('.menu-button');
 
-// Элементы для модального окна
-const deviceSelectModal = document.getElementById('device-select-modal');
-const selectMobileButton = document.getElementById('select-mobile');
-const selectDesktopButton = document.getElementById('select-desktop');
-const deviceTypeDisplay = document.getElementById('device-type-display');
-
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
 function toggleMusic(play) {
     if (play) {
-        const playPromise = gameMusic.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                gameMusic.volume = 0.3; 
-                musicPlayed = true;
-            }).catch(error => {
-                console.log("Музыка заблокирована браузером.");
-                musicPlayed = false;
-            });
-        }
+        gameMusic.volume = 0.3;
+        gameMusic.play().catch(error => {
+            console.log("Музыка заблокирована браузером.");
+        });
+        musicPlayed = true;
     } else {
         gameMusic.pause();
         musicPlayed = false;
@@ -84,15 +66,12 @@ function toggleMusic(play) {
 
 // --- ФУНКЦИЯ: Переключение разделов ---
 function showSection(sectionId) {
-    console.log("Переключаем на раздел:", sectionId);
-    
     const sections = [upgradesSection, achievementsSection, settingsSection];
     const targetSection = document.getElementById(sectionId);
 
     // Скрываем все разделы
     sections.forEach(section => {
         section.classList.remove('active');
-        section.style.display = 'none';
     });
     
     // Убираем активный класс со всех кнопок
@@ -103,23 +82,12 @@ function showSection(sectionId) {
     // Показываем целевой раздел
     if (targetSection) {
         targetSection.classList.add('active');
-        targetSection.style.display = 'block';
-        
-        // Принудительно показываем все дочерние элементы
-        const allChildren = targetSection.querySelectorAll('*');
-        allChildren.forEach(child => {
-            child.style.display = '';
-            child.style.visibility = 'visible';
-            child.style.opacity = '1';
-        });
         
         // Активируем соответствующую кнопку меню
         const menuButton = document.getElementById(`menu-${sectionId.replace('-section', '')}`);
         if (menuButton) {
             menuButton.classList.add('active');
         }
-        
-        console.log("Раздел активирован:", sectionId);
     }
 }
 
@@ -162,117 +130,15 @@ function showNotification(title, message) {
     }, 3000);
 }
 
-// Переменные для 3D наклона
-let tiltEffectListener = null;
-let mouseLeaveListener = null;
-
-// Функция для легкого 3D наклона
-function initTiltEffect() {
-    if (tiltEffectListener) { document.removeEventListener('mousemove', tiltEffectListener); }
-    if (mouseLeaveListener) { document.removeEventListener('mouseleave', mouseLeaveListener); }
-    
-    bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    header.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    bubaImage.style.transform = 'translateX(0px) translateY(0px)';
-    
-    if (settings.tilt3D && settings.deviceType === 'desktop') {
-        if (tiltInstruction) tiltInstruction.style.display = 'block';
-
-        tiltEffectListener = (e) => {
-            const { clientX: x, clientY: y } = e;
-            const { innerWidth: width, innerHeight: height } = window;
-            
-            const xPos = (x / width - 0.5) * 2;
-            const yPos = (y / height - 0.5) * 2;
-            
-            const bubaRotateY = xPos * 2;
-            const bubaRotateX = -yPos * 2;
-            bubaContainer.style.transform = `rotateY(${bubaRotateY}deg) rotateX(${bubaRotateX}deg)`;
-            
-            const elementRotateY = xPos * 0.5;
-            const elementRotateX = -yPos * 0.5;
-            header.style.transform = `rotateY(${elementRotateY}deg) rotateX(${elementRotateX}deg)`;
-            stats.style.transform = `rotateY(${elementRotateY}deg) rotateX(${elementRotateX}deg)`;
-            
-            const imageMoveX = xPos * 3;
-            const imageMoveY = yPos * 3;
-            bubaImage.style.transform = `translateX(${imageMoveX}px) translateY(${imageMoveY}px)`;
-        };
-
-        mouseLeaveListener = () => {
-            bubaContainer.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            header.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
-            bubaImage.style.transform = 'translateX(0px) translateY(0px)';
-        };
-
-        document.addEventListener('mousemove', tiltEffectListener);
-        document.addEventListener('mouseleave', mouseLeaveListener);
-    } else {
-        if (tiltInstruction) tiltInstruction.style.display = 'none';
-    }
-}
-
-// --- ФУНКЦИИ ДЛЯ ВЫБОРА УСТРОЙСТВА ---
-function applyDeviceSettings(deviceType) {
-    settings.deviceType = deviceType;
-    document.body.classList.remove('mobile-mode', 'desktop-mode');
-    
-    if (deviceType === 'mobile') {
-        document.body.classList.add('mobile-mode');
-        settings.tilt3D = false;
-        
-        if (tiltInstruction) tiltInstruction.style.display = 'none';
-    } else {
-        document.body.classList.add('desktop-mode');
-    }
-    
-    updateToggleDisplays();
-    saveProgress();
-}
-
-function handleDeviceSelection(deviceType) {
-    applyDeviceSettings(deviceType);
-    deviceSelectModal.classList.remove('active'); 
-    
-    const message = deviceType === 'mobile' ? 'Режим "Телефон" активирован. Интерфейс вертикальный.' : 'Режим "Компьютер" активирован. Включены все визуальные эффекты.';
-    showNotification(`Выбрано: ${deviceType === 'mobile' ? 'Телефон' : 'Компьютер'}`, message);
-}
-
-window.showDeviceSelectionModal = function() {
-    deviceSelectModal.classList.add('active');
-    showNotification('Смена устройства', 'Выберите ваше текущее устройство.');
-}
-
-// Обновление состояния переключателей и дисплея устройства
-function updateToggleDisplays() {
-    toggle3D.checked = settings.tilt3D;
-    toggleEffects.checked = settings.clickEffects;
-    toggleSounds.checked = settings.sounds;
-    
-    const deviceName = settings.deviceType === 'mobile' ? 'Телефон 📱' : (settings.deviceType === 'desktop' ? 'Компьютер 💻' : 'Не определен');
-    deviceTypeDisplay.textContent = deviceName;
-
-    if (settings.deviceType === 'mobile') {
-        toggle3D.disabled = true;
-    } else {
-        toggle3D.disabled = false;
-    }
-
-    toggleMusic(settings.sounds); 
-    initTiltEffect();
-}
-
 // Функция для обработки ошибки загрузки изображения
 function handleImageError() {
     const bubaContent = document.querySelector('.buba-content');
     bubaContent.innerHTML = `
-        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 15px;">
-            <div style="font-size: 5rem;">😊</div>
-            <div style="margin-top: 10px; font-weight: bold; color: #333; font-size: 2rem;">БУБА</div>
-            <div style="position: absolute; bottom: 20px; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 15px; border-radius: 0 0 15px 15px;">
-                <div style="font-weight: bold; color: #FFD700; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">КЛИКАЙ НА МЕНЯ!</div>
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 50%;">
+            <div style="font-size: 3rem;">😊</div>
+            <div style="margin-top: 5px; font-weight: bold; color: #333; font-size: 1.2rem;">БУБА</div>
+            <div style="position: absolute; bottom: 10px; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 8px; border-radius: 0 0 50% 50%;">
+                <div style="font-weight: bold; color: #FFD700; font-size: 0.9rem;">КЛИКАЙ НА МЕНЯ!</div>
             </div>
         </div>
     `;
@@ -429,7 +295,10 @@ function loadProgress() {
             totalClicks = gameData.totalClicks || 0;
             gameTimeSeconds = gameData.gameTimeSeconds || 0;
             
-            if (gameData.settings) { settings = {...settings, ...gameData.settings}; }
+            if (gameData.settings) { 
+                settings.clickEffects = gameData.settings.clickEffects !== undefined ? gameData.settings.clickEffects : true;
+                settings.sounds = gameData.settings.sounds !== undefined ? gameData.settings.sounds : true;
+            }
             
             if (gameData.upgrades) {
                 gameData.upgrades.forEach(savedUpgrade => {
@@ -454,21 +323,18 @@ function loadProgress() {
             
             upgrades.forEach(upgrade => upgrade.updateDisplay());
             updateAchievementDisplay();
-            updateToggleDisplays();
             
-            if (settings.deviceType) {
-                applyDeviceSettings(settings.deviceType);
-            }
+            // Обновляем переключатели
+            toggleEffects.checked = settings.clickEffects;
+            toggleSounds.checked = settings.sounds;
             
         } catch (error) {
             console.error('Ошибка загрузки:', error);
             recalculateAllStats();
-            updateToggleDisplays();
         }
     } else {
         recalculateAllStats();
         updateAchievementDisplay();
-        updateToggleDisplays();
     }
 }
 
@@ -477,13 +343,11 @@ function resetGame() {
     if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
         localStorage.removeItem('bubaClickerSave');
         
-        const deviceType = settings.deviceType; 
-        
         score = 0;
         totalClicks = 0;
         gameTimeSeconds = 0;
 
-        settings = { tilt3D: true, clickEffects: true, sounds: true, deviceType: deviceType };
+        settings = { clickEffects: true, sounds: true };
         
         upgrades.forEach(upgrade => {
             upgrade.level = 0;
@@ -497,8 +361,11 @@ function resetGame() {
         recalculateAllStats();
         upgrades.forEach(upgrade => upgrade.updateDisplay());
         updateAchievementDisplay();
-        updateToggleDisplays();
-        applyDeviceSettings(deviceType); 
+        
+        // Сбрасываем переключатели
+        toggleEffects.checked = true;
+        toggleSounds.checked = true;
+        toggleMusic(true);
         
         showNotification('Игра сброшена', 'Весь прогресс удален!');
     }
@@ -526,8 +393,6 @@ function initGame() {
     // Инициализация улучшений
     upgrades.forEach(upgrade => {
         const element = document.getElementById(`upgrade-${upgrade.id}`);
-        const costElement = document.getElementById(`cost-${upgrade.id}`);
-        const levelElement = document.getElementById(`level-${upgrade.id}`);
         
         element.addEventListener('click', function() {
             buyUpgrade(upgrade.id);
@@ -539,6 +404,9 @@ function initGame() {
         });
         
         upgrade.updateDisplay = function() {
+            const costElement = document.getElementById(`cost-${this.id}`);
+            const levelElement = document.getElementById(`level-${this.id}`);
+            
             costElement.textContent = Math.floor(this.cost);
             levelElement.textContent = this.level;
             
@@ -598,13 +466,6 @@ function initGame() {
     });
     
     // Обработчики переключателей настроек
-    toggle3D.addEventListener('change', function() {
-        settings.tilt3D = this.checked;
-        initTiltEffect();
-        saveProgress();
-        showNotification('Настройки', `3D эффект ${this.checked ? 'включен' : 'выключен'}`);
-    });
-
     toggleEffects.addEventListener('change', function() {
         settings.clickEffects = this.checked;
         saveProgress();
@@ -616,31 +477,12 @@ function initGame() {
         saveProgress();
         showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
     });
-    
-    // Обработчики для модального окна
-    selectMobileButton.addEventListener('click', () => handleDeviceSelection('mobile'));
-    selectMobileButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleDeviceSelection('mobile');
-    });
-    
-    selectDesktopButton.addEventListener('click', () => handleDeviceSelection('desktop'));
-    selectDesktopButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleDeviceSelection('desktop');
-    });
 
     // Автосохранение
     window.addEventListener('beforeunload', saveProgress);
     window.addEventListener('pagehide', saveProgress); 
 
     loadProgress(); 
-    
-    if (!settings.deviceType) {
-        deviceSelectModal.classList.add('active');
-    } else {
-        applyDeviceSettings(settings.deviceType);
-    }
     
     // Показываем начальный раздел
     showSection('upgrades-section');
