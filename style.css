@@ -15,7 +15,7 @@ body {
     align-items: center;
     padding: 20px;
     overflow-x: hidden;
-    perspective: 1000px; /* Для 3D-эффекта */
+    perspective: 1000px;
 }
 
 .container {
@@ -32,7 +32,7 @@ header {
     border-radius: 15px;
     border: 2px solid gold;
     transition: transform 0.2s ease;
-    transform-style: preserve-3d; /* Для 3D-эффекта */
+    transform-style: preserve-3d;
 }
 
 h1 {
@@ -52,7 +52,7 @@ h1 {
     margin-bottom: 20px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease;
-    transform-style: preserve-3d; /* Для 3D-эффекта */
+    transform-style: preserve-3d;
 }
 
 .stat-item {
@@ -67,7 +67,7 @@ h1 {
 .stat-value {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #4CAF50; /* Зеленый для активных значений */
+    color: #4CAF50;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -210,25 +210,30 @@ h1 {
 }
 
 .menu-button.active {
-    background-color: #fdbb2d; /* Золотистый/желтый */
+    background-color: #fdbb2d;
     color: #333;
     border-color: gold;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
 }
 
-/* Разделы */
+/* Разделы - ОБЩИЕ СТИЛИ */
 .section {
-    margin-top: 40px;
+    margin-top: 20px;
     padding: 20px;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     text-align: left;
+    width: 100%;
 }
 
-/* Скрытие неактивных разделов */
-.section:not(.active) {
+/* Скрытие неактивных разделов - ОБЩИЕ СТИЛИ */
+.section {
     display: none;
+}
+
+.section.active {
+    display: block;
 }
 
 .section h2 {
@@ -260,7 +265,7 @@ h1 {
     justify-content: space-between;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    min-height: 44px;
+    min-height: 160px;
 }
 
 .upgrade:hover {
@@ -269,10 +274,9 @@ h1 {
     transform: translateY(-3px);
 }
 
-/* ДОБАВЛЕНО: СТИЛЬ ДЛЯ ПОКУПАЕМОГО УЛУЧШЕНИЯ (чтобы светилось) */
 .upgrade.can-buy {
-    border-color: #4CAF50; /* Зеленый цвет рамки */
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); /* Эффект свечения */
+    border-color: #4CAF50;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
     background: rgba(76, 175, 80, 0.15);
 }
 .upgrade.can-buy:hover {
@@ -284,7 +288,7 @@ h1 {
     opacity: 0.6;
     cursor: not-allowed;
     border-color: transparent;
-    box-shadow: none; /* Убираем свечение, если нельзя купить */
+    box-shadow: none;
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -322,7 +326,7 @@ h1 {
     font-weight: bold;
 }
 
-/* --- Раздел достижений (без изменений) --- */
+/* --- Раздел достижений --- */
 .achievement-list {
     display: flex;
     flex-direction: column;
@@ -331,7 +335,7 @@ h1 {
 
 .achievement {
     background: rgba(255, 255, 255, 0.05);
-    padding: 10px 15px;
+    padding: 15px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -341,7 +345,7 @@ h1 {
 
 .achievement.unlocked {
     background: rgba(76, 175, 80, 0.2);
-    border-left-color: #4CAF50; /* Зеленый */
+    border-left-color: #4CAF50;
 }
 
 .achievement-icon {
@@ -352,6 +356,7 @@ h1 {
 .achievement-name {
     font-weight: bold;
     flex-grow: 1;
+    font-size: 1.1rem;
 }
 
 .achievement-progress {
@@ -372,7 +377,7 @@ h1 {
     margin-left: 10px;
 }
 
-/* --- Раздел настроек (изменения только в save-section) --- */
+/* --- Раздел настроек --- */
 .settings {
     display: grid;
     grid-template-columns: 1fr;
@@ -411,10 +416,8 @@ h1 {
     justify-content: center;
 }
 
-/* УДАЛЕНЫ СТИЛИ ДЛЯ #save-button И #load-button */
-
 #reset-button {
-    background-color: #f44336; /* Красный */
+    background-color: #f44336;
 }
 
 .save-section button:hover {
@@ -562,26 +565,26 @@ h1 {
     margin-top: 20px;
 }
 
-/* --- ДОБАВЛЕНО: Стили для МОБИЛЬНОГО РЕЖИМА (Вертикальный интерфейс) --- */
+/* --- ДОБАВЛЕНО: Стили для МОБИЛЬНОГО РЕЖИМА --- */
 .mobile-mode body {
-    padding: 0; 
+    padding: 10px;
     overflow: hidden;
 }
 
 .mobile-mode .container {
     max-width: 100%;
     width: 100%;
-    height: 100vh; 
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    overflow-y: hidden; 
+    padding: 0;
+    overflow-y: auto;
 }
 
 .mobile-mode header {
     margin-bottom: 10px;
-    padding: 10px;
-    flex-shrink: 0; 
+    padding: 15px;
+    flex-shrink: 0;
 }
 
 .mobile-mode h1 {
@@ -589,7 +592,7 @@ h1 {
 }
 
 .mobile-mode .stats {
-    flex-direction: column; 
+    flex-direction: column;
     gap: 5px;
     padding: 10px;
     margin-bottom: 10px;
@@ -608,10 +611,10 @@ h1 {
 }
 
 .mobile-mode .click-area {
-    flex-grow: 1; 
+    flex-grow: 1;
     padding: 5px;
     margin-bottom: 5px;
-    min-height: 250px; 
+    min-height: 200px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -620,8 +623,8 @@ h1 {
 }
 
 .mobile-mode .buba-container {
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
     touch-action: manipulation;
 }
 
@@ -629,45 +632,43 @@ h1 {
     margin: 10px 0;
     font-size: 0.85rem;
     flex-shrink: 0;
+    padding: 8px;
 }
 
 .mobile-mode #tilt-instruction {
-    display: none !important; 
+    display: none !important;
 }
 
 .mobile-mode .navigation-menu {
-    position: relative; 
     width: 100%;
-    max-width: none;
-    margin: 0 0 10px 0; 
+    margin: 0 0 10px 0;
     border-radius: 10px;
-    padding: 10px 5px;
+    padding: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     z-index: 50;
     flex-shrink: 0;
-    flex-direction: row; 
+    flex-direction: row;
 }
 
 .mobile-mode .menu-button {
     font-size: 0.8rem;
-    padding: 10px 5px;
+    padding: 8px 4px;
     flex: 1;
-    min-height: 44px;
+    min-height: 40px;
 }
 
-/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Убедимся, что разделы отображаются правильно */
+/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Разделы в мобильном режиме */
 .mobile-mode .section {
     flex-grow: 1;
-    overflow-y: auto; 
-    padding: 10px;
+    overflow-y: auto;
+    padding: 15px;
     margin-top: 0;
     margin-bottom: 10px;
     -webkit-overflow-scrolling: touch;
-    flex-shrink: 1; 
+    flex-shrink: 1;
     display: none;
 }
 
-/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Активный раздел должен показываться */
 .mobile-mode .section.active {
     display: block !important;
 }
@@ -677,47 +678,63 @@ h1 {
     margin-bottom: 15px;
 }
 
+/* Улучшения в мобильном режиме */
 .mobile-mode .upgrades-section .upgrades {
     grid-template-columns: 1fr;
     gap: 10px;
 }
 
 .mobile-mode .upgrade {
-    padding: 10px;
+    padding: 12px;
     text-align: left;
-    display: grid;
-    grid-template-columns: 40px 1fr auto;
-    gap: 10px;
-    align-items: center;
-    min-height: 44px;
+    display: block;
+    min-height: auto;
 }
 
 .mobile-mode .upgrade-icon {
-    grid-column: 1 / 2;
-    font-size: 1.5rem;
-    margin-bottom: 0;
+    font-size: 2rem;
+    margin-bottom: 5px;
 }
 
 .mobile-mode .upgrade-name {
-    grid-column: 2 / 3;
     font-size: 1rem;
-    margin-bottom: 0;
+    margin-bottom: 5px;
 }
 
 .mobile-mode .upgrade-description {
-    display: none;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    display: block;
 }
 
 .mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
-    grid-column: 3 / 4;
     font-size: 0.9rem;
-    text-align: right;
-    white-space: nowrap;
+    text-align: left;
 }
 
+/* Достижения в мобильном режиме */
 .mobile-mode .achievement {
-    padding: 8px 10px;
+    padding: 10px;
     font-size: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.mobile-mode .achievement-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+.mobile-mode .achievement-name {
+    font-size: 1rem;
+    flex-basis: 100%;
+    margin-bottom: 5px;
+}
+
+.mobile-mode .achievement-progress,
+.mobile-mode .achievement-reward {
+    font-size: 0.8rem;
+    margin-left: 0;
+    margin-right: 10px;
 }
 
 .mobile-mode .save-section {
