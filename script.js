@@ -32,7 +32,7 @@ const achievements = [
     { id: 4, clicks: 500, unlocked: false }
 ];
 
-// Промокоды
+// Промокоды (скрыты от пользователей)
 const promocodes = {
     "START100": { reward: 100, used: false },
     "BOOST500": { reward: 500, used: false },
