@@ -265,13 +265,25 @@ function handleImageError() {
 }
 
 // Функция клика
-function handleClick(event) {
+function handleBubaClick(event) {
+    // Для мобильных устройств используем touches
+    let clientX, clientY;
+    
+    if (event.type === 'touchstart' || event.type === 'touchend') {
+        const touch = event.touches[0] || event.changedTouches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+    
     score += clickValue;
     totalClicks++;
     updateDisplay();
     
     if (settings.clickEffects) {
-        createClickEffect(event.clientX, event.clientY, `+${clickValue}`);
+        createClickEffect(clientX, clientY, `+${clickValue}`);
     }
     
     buba.style.transform = 'scale(0.95)';
@@ -505,7 +517,14 @@ function initGame() {
         const costElement = document.getElementById(`cost-${upgrade.id}`);
         const levelElement = document.getElementById(`level-${upgrade.id}`);
         
+        // Исправлено: добавляем обработчики для touch и click
         element.addEventListener('click', function() {
+            buyUpgrade(upgrade.id);
+        });
+        
+        // Для мобильных устройств
+        element.addEventListener('touchend', function(e) {
+            e.preventDefault();
             buyUpgrade(upgrade.id);
         });
         
@@ -515,38 +534,51 @@ function initGame() {
             levelElement.textContent = this.level;
             
             if (score >= this.cost) {
-                element.classList.add('can-buy'); // Подсветка включена
+                element.classList.add('can-buy');
                 element.classList.remove('disabled');
             } else {
-                element.classList.remove('can-buy'); // Подсветка выключена
+                element.classList.remove('can-buy');
                 element.classList.add('disabled');
             }
         };
     });
     
     // Обработчики для кнопок меню
-    document.getElementById('menu-upgrades').addEventListener('click', () => {
-        showSection('upgrades-section');
-    });
-    document.getElementById('menu-achievements').addEventListener('click', () => {
-        showSection('achievements-section');
-    });
-    document.getElementById('menu-settings').addEventListener('click', () => {
-        showSection('settings-section');
-    });
+    const menuUpgrades = document.getElementById('menu-upgrades');
+    const menuAchievements = document.getElementById('menu-achievements');
+    const menuSettings = document.getElementById('menu-settings');
 
-    // Обработчик клика по Бубе
-    clickArea.addEventListener('click', handleClick);
+    // Исправлено: добавляем обработчики для touch и click
+    function addMenuHandler(element, sectionId) {
+        element.addEventListener('click', () => showSection(sectionId));
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            showSection(sectionId);
+        });
+    }
+
+    addMenuHandler(menuUpgrades, 'upgrades-section');
+    addMenuHandler(menuAchievements, 'achievements-section');
+    addMenuHandler(menuSettings, 'settings-section');
+
+    // Обработчик клика по Бубе - ИСПРАВЛЕНО для мобильных
+    clickArea.addEventListener('click', handleBubaClick);
+    clickArea.addEventListener('touchend', handleBubaClick);
     
     // Обработчики для анимации клика
     clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
+    clickArea.addEventListener('touchstart', (e) => { 
+        e.preventDefault(); 
+        buba.style.transform = 'scale(0.95)';
+    });
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
 
-    // Обработчики кнопок сохранения/сброса (КНОПКИ SAVE/LOAD УДАЛЕНЫ)
-    
-    document.getElementById('reset-button').addEventListener('click', function() {
+    // Обработчик кнопки сброса
+    const resetButton = document.getElementById('reset-button');
+    resetButton.addEventListener('click', resetGame);
+    resetButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
         resetGame();
     });
     
@@ -572,7 +604,16 @@ function initGame() {
     
     // Обработчики для модального окна
     selectMobileButton.addEventListener('click', () => handleDeviceSelection('mobile'));
+    selectMobileButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleDeviceSelection('mobile');
+    });
+    
     selectDesktopButton.addEventListener('click', () => handleDeviceSelection('desktop'));
+    selectDesktopButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleDeviceSelection('desktop');
+    });
 
     // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ ---
     window.addEventListener('beforeunload', saveProgress);
@@ -581,9 +622,9 @@ function initGame() {
     loadProgress(); 
     
     if (!settings.deviceType) {
-        deviceSelectModal.classList.add('active'); // Показываем выбор устройства
+        deviceSelectModal.classList.add('active');
     } else {
-        applyDeviceSettings(settings.deviceType); // Применяем настройки, если устройство выбрано
+        applyDeviceSettings(settings.deviceType);
     }
     
     showSection('upgrades-section');
