@@ -136,55 +136,23 @@ h1 {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.8);
     padding: 15px 0;
     border-radius: 0 0 50% 50% / 0 0 40% 40%;
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(4px);
     border-top: 2px solid gold;
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
 }
 
 .buba-text {
     font-weight: bold;
     color: #FFD700;
-    font-size: 1.3rem;
-    text-shadow: 3px 3px 8px rgba(0,0,0,0.9),
-                 0 0 15px rgba(255,215,0,0.8),
-                 0 0 25px rgba(255,215,0,0.6);
+    font-size: 1.2rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     text-align: center;
-    padding: 8px 15px;
-    letter-spacing: 1px;
+    padding: 5px 10px;
     font-weight: 900;
-    text-transform: uppercase;
-    animation: pulse-glow 1.5s ease-in-out infinite alternate;
-    background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    border: 2px solid rgba(255,215,0,0.5);
-    border-radius: 20px;
-    background-color: rgba(0,0,0,0.7);
-    -webkit-text-fill-color: #FFD700;
-}
-
-@keyframes pulse-glow {
-    0% {
-        text-shadow: 3px 3px 8px rgba(0,0,0,0.9),
-                     0 0 15px rgba(255,215,0,0.8),
-                     0 0 25px rgba(255,215,0,0.6);
-        transform: scale(1);
-        border-color: rgba(255,215,0,0.5);
-    }
-    100% {
-        text-shadow: 3px 3px 12px rgba(0,0,0,0.9),
-                     0 0 25px rgba(255,215,0,1),
-                     0 0 40px rgba(255,215,0,0.8);
-        transform: scale(1.05);
-        border-color: rgba(255,215,0,0.8);
-    }
 }
 
 /* Эффект клика (летающие цифры) */
@@ -440,7 +408,6 @@ h1 {
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
     border-radius: 10px;
-    text-align: center;
 }
 
 .promocode-info h3 {
@@ -449,10 +416,36 @@ h1 {
     text-align: center;
 }
 
-.promocode-info p {
-    opacity: 0.8;
+.promocode-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 4px solid #FFD700;
+}
+
+.promocode-name {
+    font-weight: bold;
+    color: #FFD700;
+    font-size: 1rem;
+}
+
+.promocode-reward {
+    font-weight: bold;
+    color: #4CAF50;
     font-size: 0.9rem;
-    margin-top: 8px;
+}
+
+.promocode-item.used {
+    opacity: 0.6;
+    border-left-color: #888;
+}
+
+.promocode-item.used .promocode-name {
+    color: #888;
 }
 
 /* --- Раздел настроек --- */
@@ -619,8 +612,7 @@ h1 {
     }
     
     .buba-text {
-        font-size: 1.1rem;
-        padding: 6px 12px;
+        font-size: 1rem;
     }
     
     .stats {
@@ -658,8 +650,8 @@ h1 {
     }
     
     .buba-text {
-        font-size: 1rem;
-        padding: 5px 10px;
+        font-size: 0.9rem;
+        padding: 3px 8px;
     }
 }
 
