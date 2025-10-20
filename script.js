@@ -1,5 +1,3 @@
-[file name]: script.js
-[file content begin]
 // Игровые переменные
 let score = 0;
 let clickValue = 1;
@@ -439,4 +437,3 @@ function initGame() {
 
 // Запуск игры при загрузке страницы
 window.addEventListener('load', initGame);
-[file content end]
