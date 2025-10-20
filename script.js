@@ -32,7 +32,7 @@ const achievements = [
     { id: 4, clicks: 500, unlocked: false }
 ];
 
-// Промокоды (скрыты от пользователей)
+// Промокоды
 const promocodes = {
     "START100": { reward: 100, used: false },
     "BOOST500": { reward: 500, used: false },
@@ -226,6 +226,12 @@ function activatePromocode() {
             score += reward;
             promocodes[code].used = true;
             
+            // Обновляем отображение промокода
+            const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+            if (promocodeItem) {
+                promocodeItem.classList.add('used');
+            }
+            
             updateDisplay();
             showNotification('Промокод активирован!', `+${reward} очков!`);
             promocodeInput.value = '';
@@ -240,12 +246,13 @@ function activatePromocode() {
 function updateAchievementDisplay() {
     achievements.forEach(achievement => {
         const element = document.getElementById(`achievement-${achievement.id}`);
-        if (!element) return;
-        
-        element.classList.toggle('unlocked', achievement.unlocked);
-        
         const progressElement = element.querySelector('.achievement-progress');
-        if (progressElement) {
+        
+        if (achievement.unlocked) {
+            element.classList.add('unlocked');
+            progressElement.textContent = `${achievement.clicks} кликов (ВЫПОЛНЕНО)`;
+        } else {
+            element.classList.remove('unlocked');
             progressElement.textContent = `${achievement.clicks} кликов`;
         }
     });
@@ -253,15 +260,25 @@ function updateAchievementDisplay() {
 
 // Проверка достижений
 function checkAchievements() {
+    let unlocked = false;
+    
     achievements.forEach(achievement => {
         if (!achievement.unlocked && totalClicks >= achievement.clicks) {
             achievement.unlocked = true;
-            showNotification('Достижение разблокировано!', `+${achievement.clicks * 2} очков!`);
-            score += achievement.clicks * 2;
-            updateAchievementDisplay();
-            updateDisplay();
+            unlocked = true;
+            
+            const reward = achievement.clicks * 2;
+            score += reward;
+            
+            showNotification('Достижение разблокировано!', `${achievement.clicks} кликов! +${reward} очков`);
         }
     });
+    
+    if (unlocked) {
+        updateDisplay();
+        updateAchievementDisplay();
+        upgrades.forEach(upgrade => upgrade.updateDisplay());
+    }
 }
 
 // Обновление отображения
@@ -271,172 +288,280 @@ function updateDisplay() {
     passiveIncomeElement.textContent = passiveIncome;
     totalClicksDisplay.textContent = totalClicks;
     playTimeDisplay.textContent = gameTimeSeconds;
-}
-
-// Пассивный доход
-function passiveIncomeTick() {
-    score += passiveIncome;
-    updateDisplay();
+    
+    upgrades.forEach(upgrade => upgrade.updateDisplay());
 }
 
 // Сохранение прогресса
 function saveProgress() {
-    const progress = {
+    const gameData = {
         score,
-        clickValue,
-        passiveIncome,
         totalClicks,
         gameTimeSeconds,
-        upgrades,
-        achievements,
-        promocodes,
-        settings
+        settings, 
+        upgrades: upgrades.map(upgrade => ({
+            id: upgrade.id,
+            level: upgrade.level,
+            cost: upgrade.cost
+        })),
+        achievements: achievements.map(achievement => ({
+            id: achievement.id,
+            unlocked: achievement.unlocked
+        })),
+        promocodes: Object.keys(promocodes).reduce((acc, code) => {
+            acc[code] = promocodes[code].used;
+            return acc;
+        }, {})
     };
-    localStorage.setItem('bubaClickerProgress', JSON.stringify(progress));
+    
+    localStorage.setItem('bubaClickerSave', JSON.stringify(gameData));
 }
 
 // Загрузка прогресса
 function loadProgress() {
-    const savedProgress = localStorage.getItem('bubaClickerProgress');
-    if (savedProgress) {
-        const progress = JSON.parse(savedProgress);
-        
-        score = progress.score || 0;
-        clickValue = progress.clickValue || 1;
-        passiveIncome = progress.passiveIncome || 0;
-        totalClicks = progress.totalClicks || 0;
-        gameTimeSeconds = progress.gameTimeSeconds || 0;
-        
-        if (progress.upgrades) {
-            upgrades.forEach(upgrade => {
-                const savedUpgrade = progress.upgrades.find(u => u.id === upgrade.id);
-                if (savedUpgrade) {
-                    upgrade.level = savedUpgrade.level || 0;
-                    upgrade.cost = savedUpgrade.cost || upgrade.baseCost;
-                }
-            });
+    const savedData = localStorage.getItem('bubaClickerSave');
+    if (savedData) {
+        try {
+            const gameData = JSON.parse(savedData);
+            
+            score = gameData.score || 0;
+            totalClicks = gameData.totalClicks || 0;
+            gameTimeSeconds = gameData.gameTimeSeconds || 0;
+            
+            if (gameData.settings) { 
+                settings.clickEffects = gameData.settings.clickEffects !== undefined ? gameData.settings.clickEffects : true;
+                settings.sounds = gameData.settings.sounds !== undefined ? gameData.settings.sounds : true;
+            }
+            
+            if (gameData.upgrades) {
+                gameData.upgrades.forEach(savedUpgrade => {
+                    const upgrade = upgrades.find(u => u.id === savedUpgrade.id);
+                    if (upgrade) {
+                        upgrade.level = savedUpgrade.level || 0;
+                        upgrade.cost = savedUpgrade.cost || upgrade.baseCost;
+                    }
+                });
+            }
+            
+            if (gameData.achievements) {
+                gameData.achievements.forEach(savedAchievement => {
+                    const achievement = achievements.find(a => a.id === savedAchievement.id);
+                    if (achievement) {
+                        achievement.unlocked = savedAchievement.unlocked || false;
+                    }
+                });
+            }
+            
+            // Загружаем использованные промокоды
+            if (gameData.promocodes) {
+                Object.keys(gameData.promocodes).forEach(code => {
+                    if (promocodes[code]) {
+                        promocodes[code].used = gameData.promocodes[code];
+                        const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+                        if (promocodeItem && gameData.promocodes[code]) {
+                            promocodeItem.classList.add('used');
+                        }
+                    }
+                });
+            }
+            
+            recalculateAllStats();
+            upgrades.forEach(upgrade => upgrade.updateDisplay());
+            updateAchievementDisplay();
+            
+            // Обновляем переключатели
+            toggleEffects.checked = settings.clickEffects;
+            toggleSounds.checked = settings.sounds;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки:', error);
+            recalculateAllStats();
         }
-        
-        if (progress.achievements) {
-            achievements.forEach(achievement => {
-                const savedAchievement = progress.achievements.find(a => a.id === achievement.id);
-                if (savedAchievement) {
-                    achievement.unlocked = savedAchievement.unlocked || false;
-                }
-            });
-        }
-        
-        if (progress.promocodes) {
-            Object.keys(promocodes).forEach(code => {
-                if (progress.promocodes[code]) {
-                    promocodes[code].used = progress.promocodes[code].used || false;
-                }
-            });
-        }
-        
-        if (progress.settings) {
-            settings = { ...settings, ...progress.settings };
-        }
-        
+    } else {
         recalculateAllStats();
         updateAchievementDisplay();
-        updateDisplay();
-        
-        if (settings.sounds) {
-            toggleMusic(true);
-        }
     }
 }
 
 // Сброс игры
 function resetGame() {
-    if (confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить.')) {
-        localStorage.removeItem('bubaClickerProgress');
-        location.reload();
+    if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
+        localStorage.removeItem('bubaClickerSave');
+        
+        score = 0;
+        totalClicks = 0;
+        gameTimeSeconds = 0;
+
+        settings = { clickEffects: true, sounds: true };
+        
+        upgrades.forEach(upgrade => {
+            upgrade.level = 0;
+            upgrade.cost = upgrade.baseCost;
+        });
+        
+        achievements.forEach(achievement => {
+            achievement.unlocked = false;
+        });
+        
+        // Сбрасываем промокоды
+        Object.keys(promocodes).forEach(code => {
+            promocodes[code].used = false;
+            const promocodeItem = document.querySelector(`[data-code="${code}"]`);
+            if (promocodeItem) {
+                promocodeItem.classList.remove('used');
+            }
+        });
+        
+        recalculateAllStats();
+        upgrades.forEach(upgrade => upgrade.updateDisplay());
+        updateAchievementDisplay();
+        
+        // Сбрасываем переключатели
+        toggleEffects.checked = true;
+        toggleSounds.checked = true;
+        toggleMusic(true);
+        
+        showNotification('Игра сброшена', 'Весь прогресс удален!');
     }
 }
 
-// Инициализация игры
+// Пассивный доход
+function passiveIncomeTick() {
+    if (passiveIncome > 0) {
+        score += passiveIncome;
+        updateDisplay();
+    }
+}
+
+// Таймер игры
+function gameTimerTick() {
+    gameTimeSeconds++;
+    playTimeDisplay.textContent = gameTimeSeconds;
+}
+
+// --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
 function initGame() {
-    // Загрузка сохраненного прогресса
-    loadProgress();
     
-    // Обновление отображения улучшений
-    upgrades.forEach(upgrade => {
-        const element = document.getElementById(`upgrade-${upgrade.id}`);
-        if (!element) return;
-        
-        upgrade.updateDisplay = function() {
-            const costElement = document.getElementById(`cost-${upgrade.id}`);
-            const levelElement = document.getElementById(`level-${upgrade.id}`);
-            
-            if (costElement) costElement.textContent = Math.floor(upgrade.cost);
-            if (levelElement) levelElement.textContent = upgrade.level;
-            
-            element.classList.toggle('can-buy', score >= upgrade.cost);
-            element.classList.toggle('disabled', score < upgrade.cost);
-        };
-        
-        element.addEventListener('click', () => buyUpgrade(upgrade.id));
-        upgrade.updateDisplay();
-    });
-    
-    // Обновление отображения достижений
-    updateAchievementDisplay();
-    
-    // Настройка обработчиков событий
-    clickArea.addEventListener('click', handleBubaClick);
-    clickArea.addEventListener('touchstart', handleBubaClick, { passive: true });
-    
-    // Настройка навигации
-    document.getElementById('menu-upgrades').addEventListener('click', () => showSection('upgrades-section'));
-    document.getElementById('menu-achievements').addEventListener('click', () => showSection('achievements-section'));
-    document.getElementById('menu-promocodes').addEventListener('click', () => showSection('promocodes-section'));
-    document.getElementById('menu-settings').addEventListener('click', () => showSection('settings-section'));
-    
-    // Настройка промокодов
-    document.getElementById('activate-promocode').addEventListener('click', activatePromocode);
-    document.getElementById('promocode-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') activatePromocode();
-    });
-    
-    // Настройка сброса игры
-    document.getElementById('reset-button').addEventListener('click', resetGame);
-    
-    // Настройка переключателей
-    toggleEffects.checked = settings.clickEffects;
-    toggleSounds.checked = settings.sounds;
-    
-    toggleEffects.addEventListener('change', () => {
-        settings.clickEffects = toggleEffects.checked;
-        saveProgress();
-    });
-    
-    toggleSounds.addEventListener('change', () => {
-        settings.sounds = toggleSounds.checked;
-        if (settings.sounds) {
-            toggleMusic(true);
-        } else {
-            toggleMusic(false);
-        }
-        saveProgress();
-    });
-    
-    // Обработка ошибки загрузки изображения
+    // Обработка ошибки изображения
     const bubaImage = document.getElementById('buba-image');
     if (bubaImage) {
-        bubaImage.addEventListener('error', handleImageError);
+        bubaImage.onerror = handleImageError;
     }
     
-    // Игровой цикл
-    setInterval(passiveIncomeTick, 1000);
-    setInterval(() => {
-        gameTimeSeconds++;
-        playTimeDisplay.textContent = gameTimeSeconds;
+    // Инициализация улучшений
+    upgrades.forEach(upgrade => {
+        const element = document.getElementById(`upgrade-${upgrade.id}`);
+        if (element) {
+            element.addEventListener('click', () => buyUpgrade(upgrade.id));
+            element.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                buyUpgrade(upgrade.id);
+            });
+            
+            upgrade.updateDisplay = function() {
+                const costElement = document.getElementById(`cost-${this.id}`);
+                const levelElement = document.getElementById(`level-${this.id}`);
+                
+                if (costElement) costElement.textContent = Math.floor(this.cost);
+                if (levelElement) levelElement.textContent = this.level;
+                
+                if (score >= this.cost) {
+                    element.classList.add('can-buy');
+                    element.classList.remove('disabled');
+                } else {
+                    element.classList.remove('can-buy');
+                    element.classList.add('disabled');
+                }
+            };
+        }
+    });
+    
+    // Обработчики для кнопок меню
+    document.getElementById('menu-upgrades').addEventListener('click', () => showSection('upgrades-section'));
+    document.getElementById('menu-upgrades').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('upgrades-section');
+    });
+    
+    document.getElementById('menu-achievements').addEventListener('click', () => showSection('achievements-section'));
+    document.getElementById('menu-achievements').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('achievements-section');
+    });
+    
+    document.getElementById('menu-promocodes').addEventListener('click', () => showSection('promocodes-section'));
+    document.getElementById('menu-promocodes').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('promocodes-section');
+    });
+    
+    document.getElementById('menu-settings').addEventListener('click', () => showSection('settings-section'));
+    document.getElementById('menu-settings').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('settings-section');
+    });
+
+    // Обработчик клика по Бубе
+    clickArea.addEventListener('click', handleBubaClick);
+    clickArea.addEventListener('touchend', handleBubaClick);
+    
+    // Обработчики для анимации клика
+    clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
+    clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
+    clickArea.addEventListener('touchstart', (e) => { 
+        e.preventDefault(); 
+        buba.style.transform = 'scale(0.95)';
+    });
+    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
+
+    // Обработчик кнопки сброса
+    document.getElementById('reset-button').addEventListener('click', resetGame);
+    document.getElementById('reset-button').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        resetGame();
+    });
+    
+    // Обработчики переключателей настроек
+    toggleEffects.addEventListener('change', function() {
+        settings.clickEffects = this.checked;
         saveProgress();
-    }, 1000);
+        showNotification('Настройки', `Эффекты кликов ${this.checked ? 'включены' : 'выключены'}`);
+    });
+
+    toggleSounds.addEventListener('change', function() {
+        toggleMusic(this.checked);
+        saveProgress();
+        showNotification('Настройки', `Звуки/Музыка ${this.checked ? 'включены' : 'выключены'}`);
+    });
+
+    // Обработчики для промокодов
+    document.getElementById('activate-promocode').addEventListener('click', activatePromocode);
+    document.getElementById('activate-promocode').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        activatePromocode();
+    });
+    
+    document.getElementById('promocode-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            activatePromocode();
+        }
+    });
+
+    // Автосохранение
+    window.addEventListener('beforeunload', saveProgress);
+    window.addEventListener('pagehide', saveProgress); 
+
+    loadProgress(); 
+    
+    // Показываем начальный раздел
+    showSection('upgrades-section');
+    
+    // Запускаем таймеры
+    setInterval(saveProgress, 30000); 
+    setInterval(passiveIncomeTick, 1000); 
+    setInterval(gameTimerTick, 1000); 
 }
 
 // Запуск игры при загрузке страницы
-window.addEventListener('load', initGame);
+document.addEventListener('DOMContentLoaded', initGame);
 [file content end]
