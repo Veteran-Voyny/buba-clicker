@@ -542,10 +542,10 @@ h1 {
     margin-top: 20px;
 }
 
-
 /* --- ДОБАВЛЕНО: Стили для МОБИЛЬНОГО РЕЖИМА (Вертикальный интерфейс) --- */
 .mobile-mode body {
     padding: 0; 
+    overflow: hidden;
 }
 
 .mobile-mode .container {
@@ -592,11 +592,14 @@ h1 {
     padding: 5px;
     margin-bottom: 5px;
     min-height: 250px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .mobile-mode .buba-container {
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 200px;
     touch-action: manipulation;
 }
 
@@ -626,8 +629,10 @@ h1 {
 .mobile-mode .menu-button {
     font-size: 0.8rem;
     padding: 10px 5px;
+    flex: 1;
 }
 
+/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Убедимся, что разделы отображаются правильно */
 .mobile-mode .section {
     flex-grow: 1;
     overflow-y: auto; 
@@ -636,6 +641,12 @@ h1 {
     margin-bottom: 10px;
     -webkit-overflow-scrolling: touch;
     flex-shrink: 1; 
+    display: none;
+}
+
+/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Активный раздел должен показываться */
+.mobile-mode .section.active {
+    display: block !important;
 }
 
 .mobile-mode .section h2 {
@@ -644,7 +655,7 @@ h1 {
 }
 
 .mobile-mode .upgrades-section .upgrades {
-    grid-template-columns: 1fr; /* Улучшения в один столбец */
+    grid-template-columns: 1fr;
     gap: 10px;
 }
 
@@ -652,7 +663,7 @@ h1 {
     padding: 10px;
     text-align: left;
     display: grid;
-    grid-template-columns: 40px 1fr auto; /* Иконка, Имя, Стоимость/Уровень */
+    grid-template-columns: 40px 1fr auto;
     gap: 10px;
     align-items: center;
 }
@@ -670,7 +681,7 @@ h1 {
 }
 
 .mobile-mode .upgrade-description {
-    display: none; /* Скрываем на мобильном для компактности */
+    display: none;
 }
 
 .mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
@@ -690,4 +701,10 @@ h1 {
     flex-direction: column;
     gap: 5px;
 }
+
+.mobile-mode .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
 }
