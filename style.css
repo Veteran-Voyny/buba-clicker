@@ -180,11 +180,12 @@ h1 {
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .menu-button {
     padding: 8px 6px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: bold;
     color: white;
     background-color: rgba(255, 255, 255, 0.1);
@@ -199,6 +200,7 @@ h1 {
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-width: 0;
 }
 
 .menu-button.active {
@@ -616,6 +618,18 @@ h1 {
         padding: 6px 4px;
         font-size: 0.7rem;
         min-height: 36px;
+    }
+}
+
+/* Для очень узких экранов */
+@media (max-width: 350px) {
+    .menu-button {
+        font-size: 0.65rem;
+        padding: 6px 3px;
+    }
+    
+    .navigation-menu {
+        gap: 2px;
     }
 }
 
