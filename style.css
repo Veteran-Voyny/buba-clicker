@@ -678,69 +678,99 @@ h1 {
     margin-bottom: 15px;
 }
 
-/* Улучшения в мобильном режиме */
+/* Улучшения в мобильном режиме - ПОЛНОСТЬЮ ВИДИМЫ */
 .mobile-mode .upgrades-section .upgrades {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
 }
 
 .mobile-mode .upgrade {
-    padding: 12px;
-    text-align: left;
-    display: block;
-    min-height: auto;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    min-height: 140px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .mobile-mode .upgrade-icon {
     font-size: 2rem;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .mobile-mode .upgrade-name {
-    font-size: 1rem;
-    margin-bottom: 5px;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #FFD700;
 }
 
 .mobile-mode .upgrade-description {
-    font-size: 0.8rem;
-    margin-bottom: 8px;
-    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    opacity: 0.9;
+    display: block !important;
 }
 
-.mobile-mode .upgrade-level, .mobile-mode .upgrade-cost {
+.mobile-mode .upgrade-level, 
+.mobile-mode .upgrade-cost {
     font-size: 0.9rem;
-    text-align: left;
+    text-align: center;
+    margin-top: 5px;
 }
 
 /* Достижения в мобильном режиме */
 .mobile-mode .achievement {
-    padding: 10px;
+    padding: 12px;
     font-size: 0.9rem;
-    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 .mobile-mode .achievement-icon {
     font-size: 1.5rem;
-    margin-right: 10px;
+    margin-right: 12px;
+    flex-shrink: 0;
 }
 
 .mobile-mode .achievement-name {
     font-size: 1rem;
-    flex-basis: 100%;
-    margin-bottom: 5px;
+    flex-grow: 1;
+    margin-bottom: 0;
+    text-align: left;
 }
 
 .mobile-mode .achievement-progress,
 .mobile-mode .achievement-reward {
     font-size: 0.8rem;
-    margin-left: 0;
-    margin-right: 10px;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+/* Настройки в мобильном режиме */
+.mobile-mode .settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mobile-mode .setting-group {
+    padding: 12px;
+}
+
+.mobile-mode .toggle-settings {
+    gap: 12px;
+}
+
+.mobile-mode .toggle {
+    padding: 8px 0;
 }
 
 .mobile-mode .save-section {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 .mobile-mode .notification {
@@ -757,4 +787,13 @@ h1 {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     cursor: pointer;
+}
+
+/* Гарантируем, что контент виден */
+.mobile-mode .upgrade > *,
+.mobile-mode .achievement > *,
+.mobile-mode .setting-group > * {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
