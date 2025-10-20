@@ -10,7 +10,7 @@ let settings = {
     tilt3D: true,
     clickEffects: true,
     sounds: true, 
-    deviceType: null // 'mobile', 'desktop', или null
+    deviceType: null
 };
 
 // Переменная состояния музыки
@@ -81,37 +81,39 @@ function toggleMusic(play) {
     }
     settings.sounds = play;
 }
-// ---------------------------------
 
 // --- ФУНКЦИЯ: Переключение разделов ---
 function showSection(sectionId) {
+    console.log("Переключаем на раздел:", sectionId);
+    
     const sections = [upgradesSection, achievementsSection, settingsSection];
     const targetSection = document.getElementById(sectionId);
 
+    // Скрываем все разделы
     sections.forEach(section => {
         section.classList.remove('active');
+        section.style.display = 'none';
     });
+    
+    // Убираем активный класс со всех кнопок
     menuButtons.forEach(button => {
         button.classList.remove('active');
     });
 
+    // Показываем целевой раздел
     if (targetSection) {
         targetSection.classList.add('active');
-        document.getElementById(`menu-${sectionId.replace('-section', '')}`).classList.add('active');
+        targetSection.style.display = 'block';
         
-        // Принудительное обновление отображения для мобильного режима
-        setTimeout(() => {
-            targetSection.style.display = 'block';
-            // Скрываем все неактивные разделы
-            sections.forEach(section => {
-                if (section !== targetSection) {
-                    section.style.display = 'none';
-                }
-            });
-        }, 50);
+        // Активируем соответствующую кнопку меню
+        const menuButton = document.getElementById(`menu-${sectionId.replace('-section', '')}`);
+        if (menuButton) {
+            menuButton.classList.add('active');
+        }
+        
+        console.log("Раздел активирован:", sectionId);
     }
 }
-// ---------------------------------------------
 
 function recalculateAllStats() {
     let newClickValue = 1;
@@ -166,7 +168,7 @@ function initTiltEffect() {
     stats.style.transform = 'rotateY(0deg) rotateX(0deg)';
     bubaImage.style.transform = 'translateX(0px) translateY(0px)';
     
-    if (settings.tilt3D && settings.deviceType === 'desktop') { // 3D только для десктопа
+    if (settings.tilt3D && settings.deviceType === 'desktop') {
         if (tiltInstruction) tiltInstruction.style.display = 'block';
 
         tiltEffectListener = (e) => {
@@ -211,9 +213,8 @@ function applyDeviceSettings(deviceType) {
     
     if (deviceType === 'mobile') {
         document.body.classList.add('mobile-mode');
-        settings.tilt3D = false; // Отключаем 3D на мобильном
+        settings.tilt3D = false;
         
-        // Принудительно скрываем инструкцию по 3D
         if (tiltInstruction) tiltInstruction.style.display = 'none';
     } else {
         document.body.classList.add('desktop-mode');
@@ -235,7 +236,6 @@ window.showDeviceSelectionModal = function() {
     deviceSelectModal.classList.add('active');
     showNotification('Смена устройства', 'Выберите ваше текущее устройство.');
 }
-// ------------------------------------
 
 // Обновление состояния переключателей и дисплея устройства
 function updateToggleDisplays() {
@@ -247,7 +247,7 @@ function updateToggleDisplays() {
     deviceTypeDisplay.textContent = deviceName;
 
     if (settings.deviceType === 'mobile') {
-        toggle3D.disabled = true; // Запрещаем 3D на мобильном
+        toggle3D.disabled = true;
     } else {
         toggle3D.disabled = false;
     }
@@ -272,7 +272,6 @@ function handleImageError() {
 
 // Функция клика
 function handleBubaClick(event) {
-    // Для мобильных устройств используем touches
     let clientX, clientY;
     
     if (event.type === 'touchstart' || event.type === 'touchend') {
@@ -409,7 +408,6 @@ function saveProgress() {
     };
     
     localStorage.setItem('bubaClickerSave', JSON.stringify(gameData));
-    console.log("Прогресс сохранен.");
 }
 
 // Загрузка прогресса
@@ -517,24 +515,21 @@ function initGame() {
     
     bubaImage.onerror = handleImageError;
     
-    // Инициализация улучшений (с обновленной функцией updateDisplay)
+    // Инициализация улучшений
     upgrades.forEach(upgrade => {
         const element = document.getElementById(`upgrade-${upgrade.id}`);
         const costElement = document.getElementById(`cost-${upgrade.id}`);
         const levelElement = document.getElementById(`level-${upgrade.id}`);
         
-        // Исправлено: добавляем обработчики для touch и click
         element.addEventListener('click', function() {
             buyUpgrade(upgrade.id);
         });
         
-        // Для мобильных устройств
         element.addEventListener('touchend', function(e) {
             e.preventDefault();
             buyUpgrade(upgrade.id);
         });
         
-        // ОБНОВЛЕНО: ФУНКЦИЯ ДЛЯ ПОДСВЕТКИ УЛУЧШЕНИЙ
         upgrade.updateDisplay = function() {
             costElement.textContent = Math.floor(this.cost);
             levelElement.textContent = this.level;
@@ -550,24 +545,31 @@ function initGame() {
     });
     
     // Обработчики для кнопок меню
-    const menuUpgrades = document.getElementById('menu-upgrades');
-    const menuAchievements = document.getElementById('menu-achievements');
-    const menuSettings = document.getElementById('menu-settings');
+    document.getElementById('menu-upgrades').addEventListener('click', () => {
+        showSection('upgrades-section');
+    });
+    document.getElementById('menu-upgrades').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('upgrades-section');
+    });
+    
+    document.getElementById('menu-achievements').addEventListener('click', () => {
+        showSection('achievements-section');
+    });
+    document.getElementById('menu-achievements').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('achievements-section');
+    });
+    
+    document.getElementById('menu-settings').addEventListener('click', () => {
+        showSection('settings-section');
+    });
+    document.getElementById('menu-settings').addEventListener('touchend', (e) => {
+        e.preventDefault();
+        showSection('settings-section');
+    });
 
-    // Исправлено: добавляем обработчики для touch и click
-    function addMenuHandler(element, sectionId) {
-        element.addEventListener('click', () => showSection(sectionId));
-        element.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            showSection(sectionId);
-        });
-    }
-
-    addMenuHandler(menuUpgrades, 'upgrades-section');
-    addMenuHandler(menuAchievements, 'achievements-section');
-    addMenuHandler(menuSettings, 'settings-section');
-
-    // Обработчик клика по Бубе - ИСПРАВЛЕНО для мобильных
+    // Обработчик клика по Бубе
     clickArea.addEventListener('click', handleBubaClick);
     clickArea.addEventListener('touchend', handleBubaClick);
     
@@ -581,9 +583,8 @@ function initGame() {
     clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
 
     // Обработчик кнопки сброса
-    const resetButton = document.getElementById('reset-button');
-    resetButton.addEventListener('click', resetGame);
-    resetButton.addEventListener('touchend', (e) => {
+    document.getElementById('reset-button').addEventListener('click', resetGame);
+    document.getElementById('reset-button').addEventListener('touchend', (e) => {
         e.preventDefault();
         resetGame();
     });
@@ -621,7 +622,7 @@ function initGame() {
         handleDeviceSelection('desktop');
     });
 
-    // --- АВТОСОХРАНЕНИЕ ПРИ ВЫХОДЕ ---
+    // Автосохранение
     window.addEventListener('beforeunload', saveProgress);
     window.addEventListener('pagehide', saveProgress); 
 
@@ -633,6 +634,7 @@ function initGame() {
         applyDeviceSettings(settings.deviceType);
     }
     
+    // Показываем начальный раздел
     showSection('upgrades-section');
     
     // Запускаем таймеры
