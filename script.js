@@ -98,6 +98,11 @@ function showSection(sectionId) {
     if (targetSection) {
         targetSection.classList.add('active');
         document.getElementById(`menu-${sectionId.replace('-section', '')}`).classList.add('active');
+        
+        // Принудительное обновление отображения для мобильного режима
+        setTimeout(() => {
+            targetSection.style.display = 'block';
+        }, 50);
     }
 }
 // ---------------------------------------------
@@ -201,8 +206,11 @@ function applyDeviceSettings(deviceType) {
     if (deviceType === 'mobile') {
         document.body.classList.add('mobile-mode');
         settings.tilt3D = false; // Отключаем 3D на мобильном
+        
+        // Принудительно скрываем инструкцию по 3D
+        if (tiltInstruction) tiltInstruction.style.display = 'none';
     } else {
-        // Десктоп по умолчанию без специального класса
+        document.body.classList.add('desktop-mode');
     }
     
     updateToggleDisplays();
@@ -256,41 +264,18 @@ function handleImageError() {
     `;
 }
 
-// ФУНКЦИЯ КЛИКА (ОСНОВНАЯ ЛОГИКА) - ЗАМЕНА handleClick
-function handleMainTap(event) {
-    // 1. ПРЕДОТВРАЩЕНИЕ ДВОЙНОГО КЛИКА / ЗАТОРМОЖЕННОГО КЛИКА НА МОБИЛЬНОМ
-    // Это критически важно: запускает логику сразу по touchstart и предотвращает конфликт с click
-    if (event.type === 'touchstart' || event.type === 'mousedown') {
-        event.preventDefault(); 
-    }
-
-    // Блокируем множественные клики, если цель не click-area
-    if (event.target !== clickArea && event.target.closest('#click-area') !== clickArea) {
-        return;
-    }
-    
-    // 2. ОСНОВНАЯ ЛОГИКА ИГРЫ
+// Функция клика
+function handleClick(event) {
     score += clickValue;
     totalClicks++;
     updateDisplay();
     
-    // Получаем координаты для эффекта клика (с поддержкой touch)
-    let clientX, clientY;
-    if (event.touches && event.touches.length > 0) {
-        clientX = event.changedTouches[0].clientX;
-        clientY = event.changedTouches[0].clientY;
-    } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-    }
-
-    if (settings.clickEffects && clientX && clientY) {
-        createClickEffect(clientX, clientY, `+${clickValue}`);
+    if (settings.clickEffects) {
+        createClickEffect(event.clientX, event.clientY, `+${clickValue}`);
     }
     
-    // Анимация нажатия
     buba.style.transform = 'scale(0.95)';
-    // Анимация отпускания будет выполнена обработчиками touchend/mouseup
+    setTimeout(() => { buba.style.transform = 'scale(1)'; }, 100);
     
     checkAchievements();
     upgrades.forEach(upgrade => upgrade.updateDisplay());
@@ -451,11 +436,8 @@ function loadProgress() {
                 applyDeviceSettings(settings.deviceType);
             }
             
-            // showNotification('Прогресс загружен', 'Ваш прогресс успешно восстановлен!'); // Убрано, т.к. автоматическая загрузка должна быть бесшумной
-            
         } catch (error) {
             console.error('Ошибка загрузки:', error);
-            // showNotification('Ошибка', 'Не удалось загрузить сохранение'); // Убрано
             recalculateAllStats();
             updateToggleDisplays();
         }
@@ -501,7 +483,7 @@ function resetGame() {
 // Пассивный доход
 function passiveIncomeTick() {
     if (passiveIncome > 0) {
-        score += passiveIncome / 10; // Тикаем 10 раз в секунду
+        score += passiveIncome;
         updateDisplay();
     }
 }
@@ -553,27 +535,17 @@ function initGame() {
         showSection('settings-section');
     });
 
-    // --- ИСПРАВЛЕННЫЕ ОБРАБОТЧИКИ КЛИКОВ/ТАПОВ ---
+    // Обработчик клика по Бубе
+    clickArea.addEventListener('click', handleClick);
     
-    // 1. Мобильный (touchstart/touchend): touchstart запускает логику, touchend завершает анимацию
-    clickArea.addEventListener('touchstart', handleMainTap, { passive: false });
-    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
-    
-    // 2. Десктоп (mousedown/mouseup): mousedown запускает логику, mouseup завершает анимацию
-    clickArea.addEventListener('mousedown', (e) => {
-        // Проверяем, что это не touch event, чтобы избежать конфликта на гибридных устройствах
-        if (e.pointerType !== 'touch') {
-            handleMainTap(e);
-        }
-    });
+    // Обработчики для анимации клика
+    clickArea.addEventListener('mousedown', () => buba.style.transform = 'scale(0.95)');
     clickArea.addEventListener('mouseup', () => buba.style.transform = 'scale(1)');
-    clickArea.addEventListener('mouseleave', () => buba.style.transform = 'scale(1)'); // Сброс анимации, если мышь ушла
-    
-    // СТАРЫЙ ОБРАБОТЧИК clickArea.addEventListener('click', handleClick); УДАЛЕН.
-    // СТАРЫЕ ОБРАБОТЧИКИ ДЛЯ АНИМАЦИИ ТОЖЕ УДАЛЕНЫ/ЗАМЕНЕНЫ.
-    // ----------------------------------------------------------------------
+    clickArea.addEventListener('touchstart', (e) => { e.preventDefault(); buba.style.transform = 'scale(0.95)'});
+    clickArea.addEventListener('touchend', () => buba.style.transform = 'scale(1)');
 
-    // Обработчики кнопок сохранения/сброса 
+    // Обработчики кнопок сохранения/сброса (КНОПКИ SAVE/LOAD УДАЛЕНЫ)
+    
     document.getElementById('reset-button').addEventListener('click', function() {
         resetGame();
     });
@@ -618,7 +590,7 @@ function initGame() {
     
     // Запускаем таймеры
     setInterval(saveProgress, 30000); 
-    setInterval(passiveIncomeTick, 100); // 10 раз в секунду
+    setInterval(passiveIncomeTick, 1000); 
     setInterval(gameTimerTick, 1000); 
 }
 
