@@ -105,6 +105,14 @@ function showSection(sectionId) {
         targetSection.classList.add('active');
         targetSection.style.display = 'block';
         
+        // Принудительно показываем все дочерние элементы
+        const allChildren = targetSection.querySelectorAll('*');
+        allChildren.forEach(child => {
+            child.style.display = '';
+            child.style.visibility = 'visible';
+            child.style.opacity = '1';
+        });
+        
         // Активируем соответствующую кнопку меню
         const menuButton = document.getElementById(`menu-${sectionId.replace('-section', '')}`);
         if (menuButton) {
