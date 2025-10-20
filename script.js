@@ -102,6 +102,12 @@ function showSection(sectionId) {
         // Принудительное обновление отображения для мобильного режима
         setTimeout(() => {
             targetSection.style.display = 'block';
+            // Скрываем все неактивные разделы
+            sections.forEach(section => {
+                if (section !== targetSection) {
+                    section.style.display = 'none';
+                }
+            });
         }, 50);
     }
 }
