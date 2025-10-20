@@ -59,7 +59,6 @@ const upgradesSection = document.getElementById('upgrades-section');
 const achievementsSection = document.getElementById('achievements-section');
 const promocodesSection = document.getElementById('promocodes-section');
 const settingsSection = document.getElementById('settings-section');
-const menuButtons = document.querySelectorAll('.menu-button');
 
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ЗВУКОМ ---
 function toggleMusic(play) {
@@ -81,6 +80,8 @@ function toggleMusic(play) {
 
 // --- ФУНКЦИЯ: Переключение разделов ---
 function showSection(sectionId) {
+    console.log("Переключаем на раздел:", sectionId);
+    
     const sections = [upgradesSection, achievementsSection, promocodesSection, settingsSection];
     const targetSection = document.getElementById(sectionId);
 
@@ -90,6 +91,7 @@ function showSection(sectionId) {
     });
     
     // Убираем активный класс со всех кнопок
+    const menuButtons = document.querySelectorAll('.menu-button');
     menuButtons.forEach(button => {
         button.classList.remove('active');
     });
@@ -103,6 +105,8 @@ function showSection(sectionId) {
         if (menuButton) {
             menuButton.classList.add('active');
         }
+        
+        console.log("Раздел активирован:", sectionId);
     }
 }
 
